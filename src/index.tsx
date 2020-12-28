@@ -1,11 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
+import Room from './client/room';
+import Lobby from './client/lobby';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    {process.env.REACT_APP_LOCAL ? <Room /> : <Lobby />}
   </React.StrictMode>,
   document.getElementById('root')
 );
