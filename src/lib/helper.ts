@@ -61,5 +61,5 @@ export function toPlacedMallTile(tileId: string, dir: number, row: number, col: 
         }));
     }
 
-    return { row, col, squares, entranceDir, exploreDirs, escalators };
+    return { row, col, dir, squares, entranceDir, exploreDirs, escalators };
 }

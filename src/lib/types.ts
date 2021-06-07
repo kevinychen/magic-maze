@@ -14,6 +14,7 @@ export interface MallTile {
 
     row: number;
     col: number;
+    dir: number;
 
     squares: { walls: (Wall | undefined)[], vortex?: Color, timer: boolean, exit?: Color }[][];
     entranceDir?: number,

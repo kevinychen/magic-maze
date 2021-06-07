@@ -8,7 +8,7 @@ import { applyMiddleware } from 'redux';
 const WrappedClient = Client({
     game: Game,
     board: Board,
-    numPlayers: 4,
+    numPlayers: 2,
     enhancer: applyMiddleware(logger),
 });
 
