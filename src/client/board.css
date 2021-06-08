@@ -24,12 +24,26 @@ body {
 .game img {
     position: absolute;
     z-index: -1;
+    pointer-events: none;
 }
 
 .game .dot {
     position: absolute;
     z-index: -1;
     border-radius: 50%;
+    box-shadow: 2px 2px #8675af;
+}
+
+.game .dot.selected {
+    outline: 3px dotted #8675af;
+    outline-offset: 3px;
+}
+
+.game .destination {
+    position: absolute;
+    z-index: -1;
+    background-color: green;
+    opacity: 50%;
 }
 
 .sidebar {

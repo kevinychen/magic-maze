@@ -12,7 +12,7 @@ export const MALL_TILES: {[id: string]: MallTile} = {
         squares: [
             [{ bottom: Wall.FULL, timer: true }, {}, {}, { vortex: Color.PURPLE }],
             [{ bottom: Wall.FULL }, {}, {}, { vortex: Color.YELLOW }],
-            [{ bottom: Wall.FULL, vortex: Color.ORANGE }, {}, { right: Wall.FULL }, {}],
+            [{ bottom: Wall.FULL, vortex: Color.ORANGE }, {}, { right: Wall.FULL }, { bottom: Wall.FULL }],
             [{ vortex: Color.GREEN }, {}, { right: Wall.FULL }, {}]
         ],
         accessways: [Color.ORANGE, Color.GREEN, Color.YELLOW, Color.PURPLE],

@@ -11,11 +11,10 @@ function isAtExploreLocation(dir: number, localRow: number, localCol: number) {
     return 2 * localRow === 3 + 3 * drow + dcol && 2 * localCol === 3 + 3 * dcol - drow;
 }
 
-function makeMove(G: GameState, pawn: Color, dir: Action): PawnLocation | undefined {
+export function makeMove(G: GameState, pawn: Color, pawnLocation: PawnLocation, dir: Action): PawnLocation | undefined {
     const { pawnLocations, placedTiles } = G;
-    const { tileId, localRow, localCol } = pawnLocations[pawn];
+    const { tileId, localRow, localCol } = pawnLocation;
     const { row, col, squares, entranceDir, exploreDirs, escalators } = placedTiles[tileId];
-    const { drow, dcol } = DIRS[dir];
 
     if (dir === Action.ESCALATOR) {
         const escalator = escalators.find(({ startRow, startCol }) => startRow === localRow && startCol === localCol);
@@ -25,6 +24,7 @@ function makeMove(G: GameState, pawn: Color, dir: Action): PawnLocation | undefi
     }
 
     // Check if currently at an accessway
+    const { drow, dcol } = DIRS[dir];
     if (isAtExploreLocation(dir, localRow, localCol)) {
         if (entranceDir !== dir && exploreDirs[dir] === undefined) {
             return undefined;
@@ -75,6 +75,10 @@ export const Game = {
         };
     },
 
+    turn: {
+        activePlayers: { all: '' },
+    },
+
     moves: {
         movePawn: (G: GameState, ctx: Ctx, pawn: Color, moves: Action[]) => {
             const { actionTiles, pawnLocations } = G;
@@ -85,7 +89,7 @@ export const Game = {
                 if (!allowedMoves.includes(move)) {
                     return INVALID_MOVE;
                 }
-                const newLocation = makeMove(G, pawn, move);
+                const newLocation = makeMove(G, pawn, pawnLocations[pawn], move);
                 if (newLocation === undefined) {
                     return INVALID_MOVE;
                 }
@@ -109,9 +113,12 @@ export const Game = {
                     if (Object.values(placedTiles).some(tile => tile.row === row + drow && tile.col === col + dcol)) {
                         return INVALID_MOVE;
                     }
-                    const [newTileId] = unplacedMallTileIds.splice(1);
+                    const newTileId = unplacedMallTileIds.pop();
+                    if (newTileId === undefined) {
+                        return INVALID_MOVE;
+                    }
                     const entranceDir = MALL_TILES[newTileId].accessways.indexOf('entrance');
-                    placedTiles[newTileId] = toPlacedMallTile(newTileId, (dir - entranceDir + 6) % 4, row, col);
+                    placedTiles[newTileId] = toPlacedMallTile(newTileId, (dir - entranceDir + 6) % 4, row + drow, col + dcol);
                 }
             }
         },
