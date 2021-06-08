@@ -26,6 +26,12 @@ body {
     z-index: -1;
 }
 
+.game .dot {
+    position: absolute;
+    z-index: -1;
+    border-radius: 50%;
+}
+
 .sidebar {
     position: absolute;
     width: var(--sidebar-width);
