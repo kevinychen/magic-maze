@@ -45,7 +45,7 @@ export function toPlacedMallTile(tileId: string, dir: number, row: number, col: 
             for (let col = 0; col < 4; col++) {
                 newSquares[row][col] = squares[3 - col][row];
                 const walls = newSquares[row][col].walls;
-                newSquares[row][col].walls = [...walls.slice(1), walls[0]];
+                newSquares[row][col].walls = [walls[3], ...walls.slice(0, -1)];
             }
         }
         squares = newSquares;
@@ -54,10 +54,10 @@ export function toPlacedMallTile(tileId: string, dir: number, row: number, col: 
         }
         exploreDirs = [...exploreDirs.slice(1), exploreDirs[0]];
         escalators = escalators.map(({ startRow, startCol, endRow, endCol }) => ({
-            startRow: 3 - startCol,
-            startCol: startRow,
-            endRow: 3 - endCol,
-            endCol: endRow,
+            startRow: startCol,
+            startCol: 3 - startRow,
+            endRow: endCol,
+            endCol: 3 - endRow,
         }));
     }
 

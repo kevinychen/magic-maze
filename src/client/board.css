@@ -46,6 +46,16 @@ body {
     opacity: 50%;
 }
 
+.explore {
+    cursor: pointer;
+    position: fixed;
+    width: 80px;
+    height: 80px;
+    left: calc(var(--sidebar-width) + 10px);
+    bottom: 10px;
+    font-size: 72px;
+}
+
 .sidebar {
     position: absolute;
     width: var(--sidebar-width);

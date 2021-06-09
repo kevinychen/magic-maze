@@ -2,9 +2,10 @@ import { BoardProps } from 'boardgame.io/react';
 import React from 'react';
 import { PanZoom } from 'react-easy-panzoom'
 import { Action, Color, GameState, MallTile, PawnLocation } from '../lib/types';
-import { makeMove } from '../lib/game';
 import './board.css';
 import { isEqual } from 'lodash';
+import { getExploreDir, getPossibleDestinations } from '../lib/game';
+import { moveMessagePortToContext } from 'worker_threads';
 
 const MALL_TILE_SIZE = 600;
 const SQUARE_SIZE = 126;
@@ -26,12 +27,11 @@ const COLORS = {
     [Color.PURPLE]: 'purple',
 };
 
-type Destination = { location: PawnLocation, path: Action[] };
-
 interface BoardState {
 
     selectedPawn?: Color;
-    possibleDestinations: Destination[];
+    possibleDestinations: PawnLocation[];
+    canExplore: boolean;
 }
 
 export class Board extends React.Component<BoardProps<GameState>, BoardState> {
@@ -40,7 +40,27 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
         super(props);
         this.state = {
             possibleDestinations: [],
+            canExplore: false,
         };
+    }
+
+    componentDidUpdate() {
+        const { G, playerID } = this.props;
+        const { selectedPawn, possibleDestinations, canExplore } = this.state;
+
+        const newState = playerID !== null && selectedPawn !== undefined
+            ? {
+                possibleDestinations: getPossibleDestinations(G, playerID, selectedPawn),
+                canExplore: getExploreDir(G, playerID, selectedPawn) !== undefined,
+            }
+            : {
+                possibleDestinations: [],
+                canExplore: false,
+            };
+        if (!isEqual(possibleDestinations, newState.possibleDestinations)
+            || canExplore !== newState.canExplore) {
+            this.setState(newState);
+        }
     }
 
     render() {
@@ -53,12 +73,13 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
             >
                 {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile))}
                 {pawnLocations.map((pawnLocation, pawn) => this.renderPawn(pawn, pawnLocation))}
-                {possibleDestinations.map(({ location, path }) => this.renderPossibleDestination(location, path))}
+                {possibleDestinations.map(loc => this.renderPossibleDestination(loc))}
             </PanZoom>
             <div className="sidebar">
                 <div className="title">MAGIC MAZE</div>
                 {[...new Array(numPlayers)].map((_, i) => this.renderPlayer(playOrder[(playOrderPos + i) % numPlayers]))}
             </div>
+            {this.maybeRenderExplore()}
         </div>;
     }
 
@@ -103,11 +124,12 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
                 backgroundColor: COLORS[pawn],
                 border: `${PAWN_BORDER}px solid black`,
             }}
-            onClick={() => this.setSelectedPawn(selectedPawn === pawn ? undefined : pawn)}
+            onClick={() => this.setState({ selectedPawn: selectedPawn === pawn ? undefined : pawn })}
         />;
     }
 
-    renderPossibleDestination({ tileId, localRow, localCol }: PawnLocation, path: Action[]) {
+    renderPossibleDestination(destination: PawnLocation) {
+        const { tileId, localRow, localCol } = destination;
         const { G: { placedTiles }, moves } = this.props;
         const { selectedPawn } = this.state;
         const { row, col } = placedTiles[tileId];
@@ -120,36 +142,21 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
                 top: `${row * MALL_TILE_SIZE + (col + localRow) * SQUARE_SIZE + (MALL_TILE_SIZE - 4 * SQUARE_SIZE) / 2}px`,
                 left: `${col * MALL_TILE_SIZE + (-row + localCol) * SQUARE_SIZE + (MALL_TILE_SIZE - 4 * SQUARE_SIZE) / 2}px`,
             }}
-            onClick={() => {
-                moves.movePawn(selectedPawn, path);
-                this.setSelectedPawn(undefined);
-            }}
+            onClick={() => { moves.movePawn(selectedPawn, destination) }}
         />;
     }
 
-    setSelectedPawn = (pawn?: Color) => {
-        const { G, playerID: myPlayerID } = this.props;
-        const { actionTiles, pawnLocations } = G;
-        const possibleDestinations: Destination[] = [];
-        if (pawn !== undefined && myPlayerID !== null) {
-            const myActions = actionTiles[myPlayerID].actions;
-            const queue: Destination[] = [{ location: pawnLocations[pawn], path: [] }];
-            while (true) {
-                const prev = queue.pop();
-                if (prev === undefined) {
-                    break;
-                }
-                for (let action of myActions) {
-                    if (action <= Action.ESCALATOR) {
-                        const newLocation = makeMove(G, pawn, prev.location, action);
-                        if (newLocation !== undefined && !possibleDestinations.some(d => isEqual(d.location, newLocation))) {
-                            queue.push({ location: newLocation, path: [...prev.path, action] });
-                            possibleDestinations.push({ location: newLocation, path: [...prev.path, action] });
-                        }
-                    }
-                }
-            }
+    maybeRenderExplore() {
+        const { moves } = this.props;
+        const { selectedPawn, canExplore } = this.state;
+        if (!canExplore) {
+            return undefined;
         }
-        this.setState({ selectedPawn: pawn, possibleDestinations })
+        return <span
+            className="explore"
+            onClick={() => { moves.explore(selectedPawn) }}
+        >
+            {ACTION_IMAGES[Action.EXPLORE]}
+        </span>;
     }
 }
