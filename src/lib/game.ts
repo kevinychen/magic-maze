@@ -30,11 +30,16 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: PawnLocation, dir: Ac
         if (entranceDir !== dir && exploreDirs[dir] === undefined) {
             return undefined;
         }
-        const newTileId = Object.entries(placedTiles)
-            .find(([_id, tile]) => tile.row === row + drow && tile.col === col + dcol)?.[0];
-        return newTileId === undefined
-            ? undefined
-            : { tileId: newTileId, localRow: 3 - localRow, localCol: 3 - localCol };
+        const newTileEntry = Object.entries(placedTiles)
+            .find(([_id, tile]) => tile.row === row + drow && tile.col === col + dcol);
+        if (newTileEntry === undefined) {
+            return undefined;
+        }
+        const [ newTileId, newTile ] = newTileEntry;
+        if (newTile.entranceDir !== (dir + 2) % 4 && newTile.exploreDirs[(dir + 2) % 4] === undefined) {
+            return undefined;
+        }
+        return { tileId: newTileId, localRow: 3 - localRow, localCol: 3 - localCol };
     }
 
     // Otherwise, check if moving will go out of bounds
@@ -57,25 +62,39 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: PawnLocation, dir: Ac
 }
 
 export function getPossibleDestinations(G: GameState, playerID: string, pawn: Color): PawnLocation[] {
-    const { actionTiles, pawnLocations } = G;
+    const { actionTiles, pawnLocations, placedTiles, vortexSystemEnabled } = G;
     const actions = actionTiles[playerID].actions;
-    const queue: PawnLocation[] = [pawnLocations[pawn]];
     const possibleDestinations: PawnLocation[] = [];
-    while (true) {
-        const prevLocation = queue.pop();
-        if (prevLocation === undefined) {
-            return possibleDestinations;
-        }
-        for (let action of actions) {
-            if (action <= Action.ESCALATOR) {
-                const newLocation = makeMove(G, pawn, prevLocation, action);
-                if (newLocation !== undefined && !possibleDestinations.some(loc => isEqual(loc, newLocation))) {
-                    queue.push(newLocation);
-                    possibleDestinations.push(newLocation);
+    for (let action of actions) {
+        let loc = pawnLocations[pawn];
+        if (action < Action.ESCALATOR) {
+            while (true) {
+                const newLocation = makeMove(G, pawn, loc, action);
+                if (newLocation === undefined) {
+                    break;
+                }
+                possibleDestinations.push(newLocation);
+                loc = newLocation;
+            }
+        } else if (action === Action.ESCALATOR) {
+            const newLocation = makeMove(G, pawn, loc, action);
+            if (newLocation !== undefined) {
+                possibleDestinations.push(newLocation);
+            }
+        } else if (action === Action.VORTEX && vortexSystemEnabled) {
+            for (const tileId in placedTiles) {
+                const { squares } = placedTiles[tileId];
+                for (let row = 0; row < 4; row++) {
+                    for (let col = 0; col < 4; col++) {
+                        if (squares[row][col].vortex === pawn) {
+                            possibleDestinations.push({ tileId, localRow: row, localCol: col });
+                        }
+                    }
                 }
             }
         }
     }
+    return possibleDestinations;
 }
 
 export function getExploreDir(G: GameState, playerID: string, pawn: Color): number | undefined {
@@ -151,21 +170,6 @@ export const Game = {
                 const entranceDir = MALL_TILES[newTileId].accessways.indexOf('entrance');
                 placedTiles[newTileId] = toPlacedMallTile(newTileId, (exploreDir - entranceDir + 6) % 4, row + drow, col + dcol);
             }
-        },
-        vortex: (G: GameState, ctx: Ctx, pawn: Color, newLocation: PawnLocation) => {
-            const { actionTiles, pawnLocations, placedTiles, vortexSystemEnabled } = G;
-            const { playerID } = ctx;
-            const { tileId, localRow, localCol } = newLocation;
-            if (!actionTiles[playerID!].actions.includes(Action.VORTEX)) {
-                return INVALID_MOVE;
-            }
-            if (!vortexSystemEnabled) {
-                return INVALID_MOVE;
-            }
-            if (placedTiles[tileId]?.squares[localRow][localCol].vortex !== pawn) {
-                return INVALID_MOVE;
-            }
-            pawnLocations[pawn] = newLocation;
         },
     },
 };

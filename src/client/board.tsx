@@ -5,7 +5,6 @@ import { Action, Color, GameState, MallTile, PawnLocation } from '../lib/types';
 import './board.css';
 import { isEqual } from 'lodash';
 import { getExploreDir, getPossibleDestinations } from '../lib/game';
-import { moveMessagePortToContext } from 'worker_threads';
 
 const MALL_TILE_SIZE = 600;
 const SQUARE_SIZE = 126;
@@ -86,6 +85,7 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
     renderMallTile = (tileId: string, { row, col, dir }: MallTile) => {
         return <img
             key={tileId}
+            className="object"
             src={`./tiles/tile${tileId}.jpg`}
             alt={`Tile ${tileId}`}
             style={{
@@ -115,7 +115,7 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
         const { row, col } = placedTiles[tileId];
         return <span
             key={pawn}
-            className={'dot' + (selectedPawn === pawn ? ' selected' : '')}
+            className={'object dot' + (selectedPawn === pawn ? ' selected' : '')}
             style={{
                 width: PAWN_SIZE,
                 height: PAWN_SIZE,
@@ -135,7 +135,7 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
         const { row, col } = placedTiles[tileId];
         return <span
             key={`${tileId}-${localRow}-${localCol}`}
-            className="destination"
+            className="object destination"
             style={{
                 width: SQUARE_SIZE,
                 height: SQUARE_SIZE,

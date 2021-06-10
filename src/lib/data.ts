@@ -30,13 +30,23 @@ export const MALL_TILES: {[id: string]: MallTile} = {
     },
     2: {
         squares: [
-            [{ exit: Color.PURPLE }, {}, {}, { bottom: Wall.FULL }],
+            [{ right: Wall.FULL, exit: Color.PURPLE }, {}, {}, { bottom: Wall.FULL }],
             [{ right: Wall.FULL, bottom: Wall.FULL }, { bottom: Wall.FULL }, { right: Wall.FULL, bottom: Wall.FULL }, { vortex: Color.PURPLE }],
             [{ right: Wall.FULL }, { right: Wall.FULL, bottom: Wall.FULL }, {}, { bottom: Wall.FULL }],
             [{ right: Wall.FULL }, {}, {}, { vortex: Color.GREEN }]
         ],
         accessways: ['', 'entrance', Color.ORANGE, ''],
         escalators: [{ start: [1, 0], end: [3, 1] }],
+    },
+    3: {
+        squares: [
+            [{ right: Wall.FULL, bottom: Wall.FULL }, {}, { right: Wall.FULL, bottom: Wall.FULL }, { bottom: Wall.FULL }],
+            [{ bottom: Wall.FULL }, { bottom: Wall.FULL }, {}, { bottom: Wall.FULL, timer: true }],
+            [{ bottom: Wall.FULL, vortex: Color.GREEN }, {}, { right: Wall.FULL }, {}],
+            [{ right: Wall.FULL }, { right: Wall.FULL, vortex: Color.ORANGE }, {}, {}]
+        ],
+        accessways: ['entrance', Color.PURPLE, '', Color.YELLOW],
+        escalators: [],
     },
 };
 

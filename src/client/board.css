@@ -21,15 +21,16 @@ body {
     overflow: none;
 }
 
-.game img {
+.game .object {
     position: absolute;
     z-index: -1;
+}
+
+.game img {
     pointer-events: none;
 }
 
 .game .dot {
-    position: absolute;
-    z-index: -1;
     border-radius: 50%;
     box-shadow: 2px 2px #8675af;
 }
@@ -40,8 +41,6 @@ body {
 }
 
 .game .destination {
-    position: absolute;
-    z-index: -1;
     background-color: green;
     opacity: 50%;
 }

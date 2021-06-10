@@ -2,6 +2,7 @@ import React from 'react';
 import { Lobby } from 'boardgame.io/react';
 import { Game, Title } from '../lib/game';
 import { Board } from './board';
+import './lobby.css';
 
 const SERVER = process.env.REACT_APP_PROXY || document.location.toString().replace(/\/$/, '');
 const GAMES = [{ game: Game, board: Board }];
