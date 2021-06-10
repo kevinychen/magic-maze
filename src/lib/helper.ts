@@ -16,6 +16,8 @@ export function toPlacedMallTile(tileId: string, dir: number, row: number, col: 
                 squares[row][col].vortex = COLORS.indexOf(parts[0]);
             } else if (parts[1] === 'exit') {
                 squares[row][col].exit = COLORS.indexOf(parts[0]);
+            } else if (parts[1] === 'weapon') {
+                squares[row][col].weapon = COLORS.indexOf(parts[0]);
             } else if (parts[0] === 'timer') {
                 squares[row][col].timer = true;
             }
@@ -37,9 +39,8 @@ export function toPlacedMallTile(tileId: string, dir: number, row: number, col: 
             }
         }
     }
-    const accessways = mallTile.accessways.split(' ');
-    let entranceDir = accessways.includes('entrance') ? accessways.indexOf('entrance') : undefined;
-    let exploreDirs = accessways.map(accessway => {
+    let entranceDir = mallTile.accessways.includes('entrance') ? mallTile.accessways.indexOf('entrance') : undefined;
+    let exploreDirs = mallTile.accessways.map(accessway => {
         switch (accessway) {
             case 'wall':
             case 'entrance':
@@ -68,7 +69,7 @@ export function toPlacedMallTile(tileId: string, dir: number, row: number, col: 
         if (entranceDir !== undefined) {
             entranceDir = (entranceDir + 1) % 4;
         }
-        exploreDirs = [...exploreDirs.slice(1), exploreDirs[0]];
+        exploreDirs = [exploreDirs[3], ...exploreDirs.slice(0, -1)];
         escalators = escalators.map(({ startRow, startCol, endRow, endCol }) => ({
             startRow: startCol,
             startCol: 3 - startRow,

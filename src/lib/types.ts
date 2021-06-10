@@ -16,6 +16,7 @@ export interface Square {
     vortex?: Color;
     timer: boolean;
     exit?: Color;
+    weapon?: Color;
 }
 
 export interface MallTile {

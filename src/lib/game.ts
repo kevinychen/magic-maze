@@ -121,6 +121,17 @@ export function getExploreDir(G: GameState, playerID: string, pawn: Color): numb
     }
 }
 
+export function getPawnsAtWeapons(G: GameState): Color[] {
+    const { pawnLocations, placedTiles } = G;
+    return [...new Array(4)]
+        .map((_, i) => i)
+        .filter(i => {
+            const { tileId, localRow, localCol } = pawnLocations[i];
+            const { squares } = placedTiles[tileId];
+            return squares[localRow][localCol].weapon === i;
+        });
+}
+
 export const Title = "Magic Maze";
 
 export const Game = {
@@ -154,6 +165,9 @@ export const Game = {
             }
             if (getPossibleDestinations(G, playerID, pawn).some(loc => isEqual(loc, newLocation))) {
                 pawnLocations[pawn] = newLocation;
+            }
+            if (getPawnsAtWeapons(G).length === 4) {
+                G.vortexSystemEnabled = false;
             }
         },
         explore: (G: GameState, ctx: Ctx, pawn: Color) => {

@@ -79,3 +79,8 @@ body {
 .sidebar .me {
     font-size: 28px;
 }
+
+.strikethrough {
+    text-decoration: line-through;
+    text-decoration-thickness: 10px;
+}

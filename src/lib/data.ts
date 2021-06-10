@@ -16,9 +16,9 @@ interface MallTile {
     objects: string[][];
 
     /**
-     * A string of four words, corresponding to the north, east, south, and west exits. Each word is either "wall", "entrance", or "<color>" explore exit
+     * A array of length 4, corresponding to the north, east, south, and west exits. Each entry is either "wall", "entrance", or "<color>" explore exit
      */
-    accessways: string;
+    accessways: string[];
 
     /**
      * The escalators on the tile, with the start and end coordinates (arrays of length 2). The directionality does not matter.
@@ -45,7 +45,7 @@ export const MALL_TILES: {[id: string]: MallTile} = {
             ['orange vortex', '', '', ''],
             ['green vortex', '', '', ''],
         ],
-        accessways: 'orange green yellow purple',
+        accessways: ['orange', 'green', 'yellow', 'purple'],
         escalators: [{ start: [2, 3], end: [3, 2] }],
     },
     '1b': {
@@ -61,7 +61,7 @@ export const MALL_TILES: {[id: string]: MallTile} = {
             ['', '', '', ''],
             ['', '', '', ''],
         ],
-        accessways: 'green yellow orange purple',
+        accessways: ['green', 'yellow', 'orange', 'purple'],
         escalators: [{ start: [2, 3], end: [3, 2] }],
     },
     '2': {
@@ -77,8 +77,8 @@ export const MALL_TILES: {[id: string]: MallTile} = {
             ['', '', '', ''],
             ['', '', '', 'green vortex'],
         ],
-        accessways: 'wall entrance orange wall',
-        escalators: [{ start: [2, 3], end: [3, 2] }],
+        accessways: ['wall', 'entrance', 'orange', 'wall'],
+        escalators: [{ start: [1, 0], end: [3, 1] }],
     },
     '3': {
         walls: [
@@ -93,7 +93,55 @@ export const MALL_TILES: {[id: string]: MallTile} = {
             ['green vortex', '', '', ''],
             ['', 'orange vortex', '', ''],
         ],
-        accessways: 'entrance purple wall yellow',
+        accessways: ['entrance', 'purple', 'wall', 'yellow'],
+        escalators: [],
+    },
+    '4': {
+        walls: [
+            'J|_ ',
+            '_ J_',
+            '| _ ',
+            '||| ',
+        ],
+        objects: [
+            ['', 'orange vertex', '', ''],
+            ['', '', 'timer', ''],
+            ['', '', '', ''],
+            ['', '', '', 'yellow vortex'],
+        ],
+        accessways: ['wall', 'purple', 'green', 'entrance'],
+        escalators: [],
+    },
+    '5': {
+        walls: [
+            'J|_ ',
+            '| __',
+            '_ J ',
+            '|   ',
+        ],
+        objects: [
+            ['', 'purple vertex', '', ''],
+            ['', '', '', ''],
+            ['', '', 'timer', ''],
+            ['', '', '', ''],
+        ],
+        accessways: ['yellow', 'orange', 'green', 'entrance'],
+        escalators: [],
+    },
+    '6': {
+        walls: [
+            '_J| ',
+            '_ |_',
+            '||_ ',
+            '||| ',
+        ],
+        objects: [
+            ['', '', 'yellow weapon', ''],
+            ['', '', '', ''],
+            ['', '', '', ''],
+            ['', '', '', 'purple vortex'],
+        ],
+        accessways: ['wall', 'entrance', 'orange', 'green'],
         escalators: [],
     },
 };
