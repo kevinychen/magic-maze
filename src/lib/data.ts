@@ -1,51 +1,99 @@
-import { Action, ActionTile, Color, Wall } from "./types";
+import { Action, ActionTile } from "./types";
 
+/**
+ * An encoding of a mall tile that is easy to read and type.
+ */
 interface MallTile {
 
-    squares: { right?: Wall, bottom?: Wall, vortex?: Color, timer?: boolean, exit?: Color }[][];
-    accessways: (Color | 'entrance' | '')[];
+    /**
+     * An array of 4 strings, each of 4 chars each. A char can be either ' ' (no walls), '|' (right wall), '_' (bottom wall), or 'J' (right and bottom walls)
+     */
+    walls: string[];
+
+    /**
+     * A 4x4 matrix. Each one has an empty string or "<color> vortex", "<color> exit", "timer"
+     */
+    objects: string[][];
+
+    /**
+     * A string of four words, corresponding to the north, east, south, and west exits. Each word is either "wall", "entrance", or "<color>" explore exit
+     */
+    accessways: string;
+
+    /**
+     * The escalators on the tile, with the start and end coordinates (arrays of length 2). The directionality does not matter.
+     */
     escalators: { start: number[], end: number[] }[];
+
+    /**
+     * If an orange wall exits, its coordinate (array of length 2), and whether it is horizontal or vertical.
+     */
+    orangeWall?: { loc: number[], dir: '|' | '_' };
 }
 
 export const MALL_TILES: {[id: string]: MallTile} = {
-    0: {
-        squares: [
-            [{ bottom: Wall.FULL, timer: true }, {}, {}, { vortex: Color.PURPLE }],
-            [{ bottom: Wall.FULL }, {}, {}, { vortex: Color.YELLOW }],
-            [{ bottom: Wall.FULL, vortex: Color.ORANGE }, {}, { right: Wall.FULL }, { bottom: Wall.FULL }],
-            [{ vortex: Color.GREEN }, {}, { right: Wall.FULL }, {}]
+    '1a': {
+        walls: [
+            '_  _',
+            '_  _',
+            '_ |_',
+            '  | ',
         ],
-        accessways: [Color.ORANGE, Color.GREEN, Color.YELLOW, Color.PURPLE],
+        objects: [
+            ['timer', '', '', 'purple vortex'],
+            ['', '', '', 'yellow vortex'],
+            ['orange vortex', '', '', ''],
+            ['green vortex', '', '', ''],
+        ],
+        accessways: 'orange green yellow purple',
         escalators: [{ start: [2, 3], end: [3, 2] }],
     },
-    1: {
-        squares: [
-            [{ right: Wall.FULL, timer: true }, {}, { bottom: Wall.FULL }, {}],
-            [{ right: Wall.FULL }, {}, { right: Wall.FULL }, {}],
-            [{}, { bottom: Wall.FULL }, { right: Wall.FULL, bottom: Wall.FULL }, { bottom: Wall.FULL }],
-            [{}, {}, { right: Wall.FULL }, {}]
+    '1b': {
+        walls: [
+            '| _ ',
+            '| | ',
+            ' _J_',
+            '  | ',
         ],
-        accessways: [Color.GREEN, Color.YELLOW, Color.ORANGE, Color.PURPLE],
+        objects: [
+            ['timer', '', '', ''],
+            ['', '', '', ''],
+            ['', '', '', ''],
+            ['', '', '', ''],
+        ],
+        accessways: 'green yellow orange purple',
         escalators: [{ start: [2, 3], end: [3, 2] }],
     },
-    2: {
-        squares: [
-            [{ right: Wall.FULL, exit: Color.PURPLE }, {}, {}, { bottom: Wall.FULL }],
-            [{ right: Wall.FULL, bottom: Wall.FULL }, { bottom: Wall.FULL }, { right: Wall.FULL, bottom: Wall.FULL }, { vortex: Color.PURPLE }],
-            [{ right: Wall.FULL }, { right: Wall.FULL, bottom: Wall.FULL }, {}, { bottom: Wall.FULL }],
-            [{ right: Wall.FULL }, {}, {}, { vortex: Color.GREEN }]
+    '2': {
+        walls: [
+            '|  _',
+            'J_J ',
+            ' J _',
+            '|   ',
         ],
-        accessways: ['', 'entrance', Color.ORANGE, ''],
-        escalators: [{ start: [1, 0], end: [3, 1] }],
+        objects: [
+            ['purple exit', '', '', ''],
+            ['', '', '', 'purple vortex'],
+            ['', '', '', ''],
+            ['', '', '', 'green vortex'],
+        ],
+        accessways: 'wall entrance orange wall',
+        escalators: [{ start: [2, 3], end: [3, 2] }],
     },
-    3: {
-        squares: [
-            [{ right: Wall.FULL, bottom: Wall.FULL }, {}, { right: Wall.FULL, bottom: Wall.FULL }, { bottom: Wall.FULL }],
-            [{ bottom: Wall.FULL }, { bottom: Wall.FULL }, {}, { bottom: Wall.FULL, timer: true }],
-            [{ bottom: Wall.FULL, vortex: Color.GREEN }, {}, { right: Wall.FULL }, {}],
-            [{ right: Wall.FULL }, { right: Wall.FULL, vortex: Color.ORANGE }, {}, {}]
+    '3': {
+        walls: [
+            'J J_',
+            '__ _',
+            '_ | ',
+            '||  ',
         ],
-        accessways: ['entrance', Color.PURPLE, '', Color.YELLOW],
+        objects: [
+            ['', '', '', ''],
+            ['', '', '', 'timer'],
+            ['green vortex', '', '', ''],
+            ['', 'orange vortex', '', ''],
+        ],
+        accessways: 'entrance purple wall yellow',
         escalators: [],
     },
 };

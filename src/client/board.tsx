@@ -6,9 +6,9 @@ import './board.css';
 import { isEqual } from 'lodash';
 import { getExploreDir, getPossibleDestinations } from '../lib/game';
 
-const MALL_TILE_SIZE = 600;
-const SQUARE_SIZE = 126;
-const PAWN_SIZE = 64;
+const MALL_TILE_SIZE = 555;
+const SQUARE_SIZE = 118;
+const PAWN_SIZE = 60;
 const PAWN_BORDER = 2;
 const ACTION_IMAGES = {
     [Action.UP]: '⬆️',

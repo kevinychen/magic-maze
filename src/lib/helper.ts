@@ -1,35 +1,51 @@
+import { isEqual } from 'lodash';
 import { MALL_TILES } from "./data";
-import { MallTile } from "./types";
+import { MallTile, Square, Wall } from "./types";
+
+const COLORS = ['yellow', 'purple', 'green', 'orange'];
 
 export function toPlacedMallTile(tileId: string, dir: number, row: number, col: number): MallTile {
     const mallTile = MALL_TILES[tileId];
-    let squares = mallTile.squares.map(row => row.map(({ vortex, timer, exit }) => ({
-        walls: Array(4), vortex, timer: timer || false, exit,
-    })));
+    let squares: Square[][] = new Array(4);
+    for (let row = 0; row < 4; row++) {
+        squares[row] = new Array(4);
+        for (let col = 0; col < 4; col++) {
+            squares[row][col] = { walls: new Array(4), timer: false };
+            const parts = mallTile.objects[row][col].split(' ');
+            if (parts[1] === 'vortex') {
+                squares[row][col].vortex = COLORS.indexOf(parts[0]);
+            } else if (parts[1] === 'exit') {
+                squares[row][col].exit = COLORS.indexOf(parts[0]);
+            } else if (parts[0] === 'timer') {
+                squares[row][col].timer = true;
+            }
+        }
+    }
     for (let row = 0; row < 4; row++) {
         for (let col = 0; col < 3; col++) {
-            const wall = mallTile.squares[row][col].right;
-            if (wall !== undefined) {
-                squares[row][col].walls[1] = squares[row][col + 1].walls[3] = wall;
+            if ('|J'.includes(mallTile.walls[row][col])) {
+                squares[row][col].walls[1] = squares[row][col + 1].walls[3] =
+                    isEqual(mallTile.orangeWall, { loc: [row, col], dir: '|' }) ? Wall.ORANGE : Wall.FULL;
             }
         }
     }
     for (let row = 0; row < 3; row++) {
         for (let col = 0; col < 4; col++) {
-            const wall = mallTile.squares[row][col].bottom;
-            if (wall !== undefined) {
-                squares[row][col].walls[2] = squares[row + 1][col].walls[0] = wall;
+            if ('_J'.includes(mallTile.walls[row][col])) {
+                squares[row][col].walls[2] = squares[row + 1][col].walls[0] =
+                    isEqual(mallTile.orangeWall, { loc: [row, col], dir: '_' }) ? Wall.ORANGE : Wall.FULL;
             }
         }
     }
-    let entranceDir = mallTile.accessways.includes('entrance') ? mallTile.accessways.indexOf('entrance') : undefined;
-    let exploreDirs = mallTile.accessways.map(accessway => {
+    const accessways = mallTile.accessways.split(' ');
+    let entranceDir = accessways.includes('entrance') ? accessways.indexOf('entrance') : undefined;
+    let exploreDirs = accessways.map(accessway => {
         switch (accessway) {
-            case '':
+            case 'wall':
             case 'entrance':
                 return undefined;
             default:
-                return accessway;
+                return COLORS.indexOf(accessway);
         }
     });
     let escalators = mallTile.escalators.flatMap(({ start, end }) => [

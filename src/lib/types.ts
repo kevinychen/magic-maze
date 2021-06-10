@@ -10,13 +10,21 @@ export interface PawnLocation {
     localCol: number;
 }
 
+export interface Square {
+
+    walls: (Wall | undefined)[];
+    vortex?: Color;
+    timer: boolean;
+    exit?: Color;
+}
+
 export interface MallTile {
 
     row: number;
     col: number;
     dir: number;
 
-    squares: { walls: (Wall | undefined)[], vortex?: Color, timer: boolean, exit?: Color }[][];
+    squares: Square[][];
     entranceDir?: number,
     exploreDirs: (Color | undefined)[],
     escalators: { startRow: number, startCol: number, endRow: number, endCol: number }[];

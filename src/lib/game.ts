@@ -128,7 +128,7 @@ export const Game = {
 
     setup: (ctx: Ctx): GameState => {
         const { numPlayers, random } = ctx;
-        const startTileId = '0'; // TODO
+        const startTileId = '1a'; // TODO
         return {
             actionTiles: Object.fromEntries(random!.Shuffle(ACTION_TILES.filter(tile => tile.numPlayers.includes(numPlayers)))
                 .map((tile, i) => [i, tile])),
