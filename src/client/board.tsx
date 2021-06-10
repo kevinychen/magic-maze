@@ -105,7 +105,7 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
         >
             {playerID === myPlayerID ? "ME" : `Player ${playerID}:`}
             <br />
-            {actionTiles[playerID].actions.map(action => ' ' + this.renderAction(action))}
+            {actionTiles[playerID].actions.map(action => <span> {this.renderAction(action)}</span>)}
         </div>;
     }
 

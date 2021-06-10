@@ -104,7 +104,7 @@ export const MALL_TILES: {[id: string]: MallTile} = {
             '||| ',
         ],
         objects: [
-            ['', 'orange vertex', '', ''],
+            ['', 'orange vortex', '', ''],
             ['', '', 'timer', ''],
             ['', '', '', ''],
             ['', '', '', 'yellow vortex'],
@@ -120,7 +120,7 @@ export const MALL_TILES: {[id: string]: MallTile} = {
             '|   ',
         ],
         objects: [
-            ['', 'purple vertex', '', ''],
+            ['', 'purple vortex', '', ''],
             ['', '', '', ''],
             ['', '', 'timer', ''],
             ['', '', '', ''],
@@ -142,6 +142,54 @@ export const MALL_TILES: {[id: string]: MallTile} = {
             ['', '', '', 'purple vortex'],
         ],
         accessways: ['wall', 'entrance', 'orange', 'green'],
+        escalators: [],
+    },
+    '7': {
+        walls: [
+            '_J|_',
+            ' __ ',
+            'J_| ',
+            '||| ',
+        ],
+        objects: [
+            ['', '', 'green vortex', ''],
+            ['', '', '', ''],
+            ['orange weapon', '', '', ''],
+            ['', '', '', 'yellow vortex'],
+        ],
+        accessways: ['wall', 'purple', 'entrance', 'wall'],
+        escalators: [{ start: [1, 2], end: [3, 1] }],
+    },
+    '8': {
+        walls: [
+            ' _  ',
+            'J|J ',
+            '__J ',
+            '    ',
+        ],
+        objects: [
+            ['', '', '', ''],
+            ['', '', 'yellow vortex', ''],
+            ['', '', '', ''],
+            ['green weapon', '', '', ''],
+        ],
+        accessways: ['wall', 'purple', 'entrance', 'orange'],
+        escalators: [],
+    },
+    '9': {
+        walls: [
+            'J _ ',
+            '_J| ',
+            '_J| ',
+            '    ',
+        ],
+        objects: [
+            ['', '', '', ''],
+            ['', '', '', ''],
+            ['', '', 'orange vortex', ''],
+            ['purple weapon', '', '', ''],
+        ],
+        accessways: ['wall', 'wall', 'yellow', 'entrance'],
         escalators: [],
     },
 };
