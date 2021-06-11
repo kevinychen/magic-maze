@@ -192,6 +192,71 @@ export const MALL_TILES: {[id: string]: MallTile} = {
         accessways: ['wall', 'wall', 'yellow', 'entrance'],
         escalators: [],
     },
+    '10': {
+        walls: [
+            '_||_',
+            '_J_ ',
+            ' || ',
+            '||| ',
+        ],
+        objects: [
+            ['', '', '', ''],
+            ['orange vortex', '', '', ''],
+            ['', '', '', ''],
+            ['green exit', '', '', 'green vortex'],
+        ],
+        accessways: ['yellow', 'entrance', 'purple', 'wall'],
+        escalators: [{ start: [1, 2], end: [2, 1] }],
+    },
+    '11': {
+        walls: [
+            '|J|_',
+            ' _J ',
+            '| | ',
+            ' |  ',
+        ],
+        objects: [
+            ['yellow exit', '', '', ''],
+            ['', '', '', 'yellow vortex'],
+            ['', '', '', ''],
+            ['', '', '', ''],
+        ],
+        accessways: ['orange', 'entrance', 'green', 'wall'],
+        escalators: [],
+    },
+    '12': {
+        walls: [
+            ' J__',
+            '||| ',
+            '|J  ',
+            '| | ',
+        ],
+        objects: [
+            ['', '', '', ''],
+            ['', '', '', 'orange vortex'],
+            ['', '', '', ''],
+            ['orange exit', '', '', 'purple vortex'],
+        ],
+        accessways: ['wall', 'entrance', 'wall', 'yellow'],
+        escalators: [{ start: [0, 1], end: [1, 2] }, { start: [2, 0], end: [3, 1] }],
+    },
+    '13': {
+        walls: [
+            ' |_ ',
+            'J J ',
+            '||_ ',
+            '|   ',
+        ],
+        objects: [
+            ['', '', '', ''],
+            ['', '', '', ''],
+            ['', '', 'purple vortex', ''],
+            ['', '', '', ''],
+        ],
+        accessways: ['green', 'wall', 'yellow', 'entrance'],
+        escalators: [],
+        orangeWall: { loc: [1, 2], dir: '|' },
+    },
 };
 
 export const ACTION_TILES: ActionTile[] = [

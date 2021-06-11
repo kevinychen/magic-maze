@@ -54,11 +54,12 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: PawnLocation, dir: Ac
     }
 
     // Check for another pawn
-    if (pawnLocations.some(loc => loc.tileId === tileId && loc.localRow === localRow + drow && loc.localCol === localCol + dcol)) {
+    const destination = { tileId: tileId, localRow: localRow + drow, localCol: localCol + dcol };
+    if (pawnLocations.some(loc => isEqual(loc, destination))) {
         return undefined;
     }
 
-    return { tileId: tileId, localRow: localRow + drow, localCol: localCol + dcol };
+    return destination;
 }
 
 export function getPossibleDestinations(G: GameState, playerID: string, pawn: Color): PawnLocation[] {
@@ -84,10 +85,11 @@ export function getPossibleDestinations(G: GameState, playerID: string, pawn: Co
         } else if (action === Action.VORTEX && vortexSystemEnabled) {
             for (const tileId in placedTiles) {
                 const { squares } = placedTiles[tileId];
-                for (let row = 0; row < 4; row++) {
-                    for (let col = 0; col < 4; col++) {
-                        if (squares[row][col].vortex === pawn) {
-                            possibleDestinations.push({ tileId, localRow: row, localCol: col });
+                for (let localRow = 0; localRow < 4; localRow++) {
+                    for (let localCol = 0; localCol < 4; localCol++) {
+                        const destination = { tileId, localRow, localCol };
+                        if (squares[localRow][localCol].vortex === pawn && !pawnLocations.some(loc => isEqual(loc, destination))) {
+                            possibleDestinations.push(destination);
                         }
                     }
                 }

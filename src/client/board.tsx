@@ -4,7 +4,7 @@ import { PanZoom } from 'react-easy-panzoom'
 import { Action, Color, GameState, MallTile, PawnLocation } from '../lib/types';
 import './board.css';
 import { isEqual } from 'lodash';
-import { getExploreDir, getPawnsAtWeapons, getPossibleDestinations } from '../lib/game';
+import { getExploreDir, getPossibleDestinations } from '../lib/game';
 
 const MALL_TILE_SIZE = 555;
 const SQUARE_SIZE = 118;
@@ -98,7 +98,7 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
     }
 
     renderPlayer(playerID: string) {
-        const { G: { actionTiles, vortexSystemEnabled }, playerID: myPlayerID } = this.props;
+        const { G: { actionTiles }, playerID: myPlayerID } = this.props;
         return <div
             key={playerID}
             className={"player" + (playerID === myPlayerID ? " me" : "")}
