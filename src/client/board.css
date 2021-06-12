@@ -45,6 +45,11 @@ body {
     opacity: 50%;
 }
 
+.game .used {
+    background-color: orange;
+    opacity: 50%;
+}
+
 .info {
     position: fixed;
     left: calc(var(--sidebar-width) + 10px);

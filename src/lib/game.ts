@@ -154,6 +154,7 @@ export const Game = {
             placedTiles: { [startTileId]: toPlacedMallTile(startTileId, 0, 0, 0) },
             unplacedMallTileIds: random!.Shuffle(Object.entries(MALL_TILES).filter(([_id, tile]) => tile.accessways.includes('entrance')))
                 .map(([id, _tile]) => id),
+            usedObjects: [],
             vortexSystemEnabled: true,
         };
     },
@@ -164,14 +165,25 @@ export const Game = {
 
     moves: {
         movePawn: (G: GameState, ctx: Ctx, pawn: Color, newLocation: PawnLocation) => {
-            const { pawnLocations } = G;
+            const { clock: { numMillisLeft, atTime }, pawnLocations, placedTiles, usedObjects } = G;
             const { playerID } = ctx;
             if (playerID === undefined) {
                 return INVALID_MOVE;
             }
-            if (getPossibleDestinations(G, playerID, pawn).some(loc => isEqual(loc, newLocation))) {
-                pawnLocations[pawn] = newLocation;
+            if (!getPossibleDestinations(G, playerID, pawn).some(loc => isEqual(loc, newLocation))) {
+                return INVALID_MOVE;
             }
+            pawnLocations[pawn] = newLocation;
+
+            const { tileId, localRow, localCol } = newLocation;
+            const { squares } = placedTiles[tileId];
+            if (squares[localRow][localCol].timer && !usedObjects.some(loc => isEqual(loc, newLocation))) {
+                const now = Date.now();
+                const actualNumMillisLeft = numMillisLeft - (now - atTime);
+                usedObjects.push(newLocation);
+                G.clock = { numMillisLeft: TIMER_MILLIS - actualNumMillisLeft, atTime: now };
+            }
+
             if (getPawnsAtWeapons(G).length === 4) {
                 G.vortexSystemEnabled = false;
             }
@@ -199,5 +211,10 @@ export const Game = {
             },
             client: false,
         },
+    },
+
+    endIf: (G: GameState) => {
+        const { clock: { numMillisLeft } } = G;
+        return numMillisLeft <= 0;
     },
 };

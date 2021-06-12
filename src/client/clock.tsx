@@ -5,6 +5,7 @@ interface Props {
 
     numMillisLeft: number;
     atTime: number;
+    timesUp: () => void;
 }
 
 interface State {
@@ -43,15 +44,19 @@ export class Clock extends React.Component<Props, State> {
     render() {
         const { actualNumMillisLeft } = this.state;
         const numSeconds = Math.ceil(actualNumMillisLeft / 1000);
-        if (numSeconds <= 0) {
+        if (numSeconds < 0) {
             return "TIME'S UP";
         }
         return `${Math.floor(numSeconds / 60)}:${numSeconds % 60 < 10 ? '0' : ''}${numSeconds % 60}`;
     }
 
     updateTime = () => {
-        const { numMillisLeft: numSecondsLeft } = this.props;
-        this.setState({ actualNumMillisLeft: numSecondsLeft - (Date.now() - this.atLocalTime) })
+        const { numMillisLeft, timesUp } = this.props;
+        const actualNumMillisLeft = numMillisLeft - (Date.now() - this.atLocalTime);
+        if (actualNumMillisLeft < 0) {
+            timesUp();
+        }
+        this.setState({ actualNumMillisLeft });
         if (this.timeout !== undefined) {
             clearTimeout(this.timeout);
         }

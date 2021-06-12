@@ -44,5 +44,6 @@ export interface GameState {
     pawnLocations: PawnLocation[];
     placedTiles: { [tileId: string]: MallTile };
     unplacedMallTileIds: string[];
+    usedObjects: PawnLocation[];
     vortexSystemEnabled: boolean;
 }

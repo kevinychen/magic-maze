@@ -64,7 +64,7 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
     }
 
     render() {
-        const { G: { pawnLocations, placedTiles }, ctx: { numPlayers, playOrder, playOrderPos } } = this.props;
+        const { G: { pawnLocations, placedTiles, usedObjects }, ctx: { numPlayers, playOrder, playOrderPos } } = this.props;
         const { possibleDestinations } = this.state;
         return <div className="board">
             <PanZoom
@@ -78,8 +78,9 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
                   }}
             >
                 {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile))}
-                {pawnLocations.map((pawnLocation, pawn) => this.renderPawn(pawn, pawnLocation))}
+                {usedObjects.map(loc => this.renderUsedObject(loc))}
                 {possibleDestinations.map(loc => this.renderPossibleDestination(loc))}
+                {pawnLocations.map((pawnLocation, pawn) => this.renderPawn(pawn, pawnLocation))}
             </PanZoom>
             <div className="sidebar">
                 <div className="title">MAGIC MAZE</div>
@@ -154,12 +155,32 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
         />;
     }
 
+    renderUsedObject(location: PawnLocation) {
+        const { tileId, localRow, localCol } = location;
+        const { G: { placedTiles } } = this.props;
+        const { row, col } = placedTiles[tileId];
+        return <span
+            key={`${tileId}-${localRow}-${localCol}`}
+            className="object used"
+            style={{
+                width: SQUARE_SIZE,
+                height: SQUARE_SIZE,
+                top: `${row * MALL_TILE_SIZE + (col + localRow) * SQUARE_SIZE + (MALL_TILE_SIZE - 4 * SQUARE_SIZE) / 2}px`,
+                left: `${col * MALL_TILE_SIZE + (-row + localCol) * SQUARE_SIZE + (MALL_TILE_SIZE - 4 * SQUARE_SIZE) / 2}px`,
+            }}
+        />;
+    }
+
     renderInfo() {
-        const { G: { clock: { numMillisLeft, atTime }}} = this.props;
+        const { G: { clock: { numMillisLeft, atTime } }, moves } = this.props;
         return <span
             className="info"
         >
-            <Clock numMillisLeft={numMillisLeft} atTime={atTime} />
+            <Clock
+                numMillisLeft={numMillisLeft}
+                atTime={atTime}
+                timesUp={() => moves.sync()}
+            />
         </span>;
     }
 
