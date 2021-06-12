@@ -1,4 +1,3 @@
-
 export enum Wall { ORANGE, FULL };
 export enum Color { YELLOW, PURPLE, GREEN, ORANGE };
 export enum Action { UP, RIGHT, DOWN, LEFT, ESCALATOR, EXPLORE, VORTEX };

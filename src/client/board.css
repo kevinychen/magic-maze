@@ -57,6 +57,11 @@ body {
     font-size: 36px;
 }
 
+.weapon {
+    width: 40px;
+    height: 40px;
+}
+
 .explore {
     cursor: pointer;
     position: fixed;

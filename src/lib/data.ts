@@ -31,7 +31,7 @@ interface MallTile {
     orangeWall?: { loc: number[], dir: '|' | '_' };
 }
 
-export const MALL_TILES: {[id: string]: MallTile} = {
+export const MALL_TILES: { [id: string]: MallTile } = {
     '1a': {
         walls: [
             '_  _',

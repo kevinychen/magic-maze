@@ -36,7 +36,7 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: PawnLocation, dir: Ac
         if (newTileEntry === undefined) {
             return undefined;
         }
-        const [ newTileId, newTile ] = newTileEntry;
+        const [newTileId, newTile] = newTileEntry;
         if (newTile.entranceDir !== (dir + 2) % 4 && newTile.exploreDirs[(dir + 2) % 4] === undefined) {
             return undefined;
         }
@@ -126,14 +126,14 @@ export function getExploreDir(G: GameState, playerID: string, pawn: Color): numb
     }
 }
 
-export function getPawnsAtWeapons(G: GameState): Color[] {
+export function getPawnsAt(G: GameState, locationType: 'weapon' | 'exit'): Color[] {
     const { pawnLocations, placedTiles } = G;
     return [...new Array(4)]
         .map((_, i) => i)
         .filter(i => {
             const { tileId, localRow, localCol } = pawnLocations[i];
             const { squares } = placedTiles[tileId];
-            return squares[localRow][localCol].weapon === i;
+            return squares[localRow][localCol][locationType] === i;
         });
 }
 
@@ -184,7 +184,7 @@ export const Game = {
                 G.clock = { numMillisLeft: TIMER_MILLIS - actualNumMillisLeft, atTime: now };
             }
 
-            if (getPawnsAtWeapons(G).length === 4) {
+            if (getPawnsAt(G, 'weapon').length === 4) {
                 G.vortexSystemEnabled = false;
             }
         },
@@ -214,7 +214,7 @@ export const Game = {
     },
 
     endIf: (G: GameState) => {
-        const { clock: { numMillisLeft } } = G;
-        return numMillisLeft <= 0;
+        const { clock: { numMillisLeft }, vortexSystemEnabled } = G;
+        return numMillisLeft <= 0 || (!vortexSystemEnabled && getPawnsAt(G, 'exit').length === 4);
     },
 };

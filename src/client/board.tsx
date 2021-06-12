@@ -4,7 +4,7 @@ import { PanZoom } from 'react-easy-panzoom'
 import { Action, Color, GameState, MallTile, PawnLocation } from '../lib/types';
 import './board.css';
 import { isEqual } from 'lodash';
-import { getExploreDir, getPossibleDestinations } from '../lib/game';
+import { getExploreDir, getPawnsAt, getPossibleDestinations } from '../lib/game';
 import { Clock } from './clock';
 
 const MALL_TILE_SIZE = 555;
@@ -75,7 +75,7 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
                     '83': { x: 0, y: -5, z: 0 },
                     '65': { x: 5, y: 0, z: 0 },
                     '68': { x: -5, y: 0, z: 0 },
-                  }}
+                }}
             >
                 {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile))}
                 {usedObjects.map(loc => this.renderUsedObject(loc))}
@@ -172,7 +172,11 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
     }
 
     renderInfo() {
-        const { G: { clock: { numMillisLeft, atTime } }, moves } = this.props;
+        const { G, moves } = this.props;
+        const { clock: { numMillisLeft, atTime }, vortexSystemEnabled } = G;
+        const weapons: Color[] = vortexSystemEnabled
+            ? getPawnsAt(G, 'weapon')
+            : [...new Array(4)].map((_, i) => i).filter(i => !getPawnsAt(G, 'exit').includes(i));
         return <span
             className="info"
         >
@@ -181,6 +185,12 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
                 atTime={atTime}
                 timesUp={() => moves.sync()}
             />
+            {weapons.map(color => <img
+                key={color}
+                className="weapon"
+                src={`./weapons/${COLORS[color]}.png`}
+                alt={`${COLORS[color]} weapon`}
+            />)}
         </span>;
     }
 
