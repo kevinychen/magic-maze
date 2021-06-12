@@ -50,6 +50,10 @@ body {
     opacity: 50%;
 }
 
+.action {
+    width: 100px;
+}
+
 .info {
     position: fixed;
     left: calc(var(--sidebar-width) + 10px);
@@ -95,9 +99,4 @@ body {
 
 .sidebar .me {
     font-size: 28px;
-}
-
-.strikethrough {
-    text-decoration: line-through;
-    text-decoration-thickness: 10px;
 }

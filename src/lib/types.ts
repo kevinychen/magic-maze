@@ -32,6 +32,7 @@ export interface MallTile {
 
 export interface ActionTile {
 
+    id: string;
     numPlayers: number[];
     actions: Action[];
 }

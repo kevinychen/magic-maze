@@ -1,7 +1,7 @@
 import { BoardProps } from 'boardgame.io/react';
 import React from 'react';
 import { PanZoom } from 'react-easy-panzoom'
-import { Action, Color, GameState, MallTile, PawnLocation } from '../lib/types';
+import { Color, GameState, MallTile, PawnLocation } from '../lib/types';
 import './board.css';
 import { isEqual } from 'lodash';
 import { getExploreDir, getPawnsAt, getPossibleDestinations } from '../lib/game';
@@ -11,15 +11,6 @@ const MALL_TILE_SIZE = 555;
 const SQUARE_SIZE = 118;
 const PAWN_SIZE = 60;
 const PAWN_BORDER = 2;
-const ACTION_IMAGES = {
-    [Action.UP]: '⬆️',
-    [Action.RIGHT]: '️➡️',
-    [Action.DOWN]: '⬇️️',
-    [Action.LEFT]: '⬅️️',
-    [Action.EXPLORE]: '🔍️',
-    [Action.ESCALATOR]: '🚁️',
-    [Action.VORTEX]: '🌀️',
-};
 const COLORS = {
     [Color.GREEN]: 'green',
     [Color.ORANGE]: 'orange',
@@ -42,6 +33,11 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
             possibleDestinations: [],
             canExplore: false,
         };
+    }
+
+    componentDidMount() {
+        const { moves } = this.props;
+        moves.sync();
     }
 
     componentDidUpdate() {
@@ -107,14 +103,17 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
     }
 
     renderPlayer(playerID: string) {
-        const { G: { actionTiles }, playerID: myPlayerID } = this.props;
+        const { G: { actionTiles, vortexSystemEnabled }, playerID: myPlayerID } = this.props;
         return <div
             key={playerID}
             className={"player" + (playerID === myPlayerID ? " me" : "")}
         >
-            {playerID === myPlayerID ? "ME" : `Player ${playerID}:`}
-            <br />
-            {actionTiles[playerID].actions.map(action => <span key={action}> {this.renderAction(action)}</span>)}
+            {`${playerID === myPlayerID ? "ME" : `Player ${playerID}`}: `}
+            <img
+                className="action"
+                src={`./actions/${vortexSystemEnabled ? 'normal' : 'flip'}${actionTiles[playerID].id}.jpg`}
+                alt=''
+            />
         </div>;
     }
 
@@ -204,15 +203,7 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
             className="explore"
             onClick={() => { moves.explore(selectedPawn) }}
         >
-            {this.renderAction(Action.EXPLORE)}
+            {'🔍'}
         </span>;
-    }
-
-    renderAction(action: Action) {
-        const { G: { vortexSystemEnabled } } = this.props;
-        if (action === Action.VORTEX && !vortexSystemEnabled) {
-            return <span className="strikethrough">{ACTION_IMAGES[action]}</span>;
-        }
-        return ACTION_IMAGES[action];
     }
 }
