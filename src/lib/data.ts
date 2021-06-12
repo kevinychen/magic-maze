@@ -257,15 +257,237 @@ export const MALL_TILES: { [id: string]: MallTile } = {
         escalators: [],
         orangeWall: { loc: [1, 2], dir: '|' },
     },
+    '14': {
+        walls: [
+            '|||_',
+            '||  ',
+            '|JJ_',
+            '    ',
+        ],
+        objects: [
+            ['purple vortex', '', '', ''],
+            ['', '', '', ''],
+            ['', '', '', ''],
+            ['', '', '', 'yellow vortex'],
+        ],
+        accessways: ['green', 'entrance', 'orange', 'wall'],
+        escalators: [{ start: [1, 0], end: [2, 2] }],
+        orangeWall: { loc: [2, 2], dir: '_' },
+    },
+    '15': {
+        walls: [
+            '|||_',
+            '|J  ',
+            'J J ',
+            '||| ',
+        ],
+        objects: [
+            ['', '', 'yellow vortex', ''],
+            ['', '', '', ''],
+            ['', '', '', ''],
+            ['', '', '', 'purple crystal'],
+        ],
+        accessways: ['wall', 'entrance', 'green', 'orange'],
+        escalators: [{ start: [0, 0], end: [1, 2] }],
+        orangeWall: { loc: [2, 0], dir: '|' },
+    },
+    '16': {
+        walls: [
+            'J |_',
+            '||_ ',
+            ' _J_',
+            '    ',
+        ],
+        objects: [
+            ['', '', '', ''],
+            ['yellow camera', '', '', ''],
+            ['', '', '', ''],
+            ['', '', '', 'green vortex'],
+        ],
+        accessways: ['purple', 'entrance', 'orange', 'wall'],
+        escalators: [],
+        orangeWall: { loc: [2, 2], dir: '|' },
+    },
+    '17': {
+        walls: [
+            'J_|_',
+            '_J _',
+            '_ |_',
+            '||  ',
+        ],
+        objects: [
+            ['', '', '', ''],
+            ['', '', '', 'green vortex'],
+            ['yellow camera', '', '', ''],
+            ['', '', '', 'purple crystal'],
+        ],
+        accessways: ['wall', 'wall', 'orange', 'entrance'],
+        escalators: [],
+    },
+    '18': {
+        walls: [
+            '_J| ',
+            '_ J_',
+            '| __',
+            '||  ',
+        ],
+        objects: [
+            ['', '', '', ''],
+            ['', '', '', ''],
+            ['', '', '', 'purple vortex'],
+            ['', 'yellow camera', '', ''],
+        ],
+        accessways: ['green', 'wall', 'wall', 'entrance'],
+        escalators: [],
+    },
+    '19': {
+        walls: [
+            ' |_ ',
+            '|__ ',
+            '  J ',
+            '||| ',
+        ],
+        objects: [
+            ['', '', '', ''],
+            ['', '', '', ''],
+            ['', '', '', ''],
+            ['yellow camera', '', '', 'green vortex'],
+        ],
+        accessways: ['purple', 'orange', 'entrance', 'yellow'],
+        escalators: [],
+    },
+    '20': {
+        walls: [
+            'J |_',
+            ' J_ ',
+            '_|| ',
+            '||| ',
+        ],
+        objects: [
+            ['', '', '', ''],
+            ['', '', '', ''],
+            ['', '', '', ''],
+            ['', '', '', 'purple crystal'],
+        ],
+        accessways: ['wall', 'yellow', 'entrance', 'green'],
+        escalators: [{ start: [1, 2], end: [2, 1] }],
+    },
+    '21': {
+        walls: [
+            ' __ ',
+            '__| ',
+            ' _J ',
+            '  | ',
+        ],
+        objects: [
+            ['', '', '', ''],
+            ['', '', '', ''],
+            ['', '', '', ''],
+            ['', '', '', ''],
+        ],
+        accessways: ['wall', 'orange', 'entrance', 'purple'],
+        escalators: [],
+        orangeWall: { loc: [3, 2], dir: '|' },
+    },
+    '22': {
+        walls: [
+            '|J_ ',
+            '|  _',
+            '_J_ ',
+            '|   ',
+        ],
+        objects: [
+            ['yellow vortex', '', '', ''],
+            ['', '', '', ''],
+            ['', '', '', ''],
+            ['', '', '', ''],
+        ],
+        accessways: ['orange', 'wall', 'green', 'entrance'],
+        escalators: [],
+    },
+    '23': {
+        walls: [
+            '  __',
+            '||__',
+            'J_| ',
+            '|   ',
+        ],
+        objects: [
+            ['', '', '', 'yellow vortex'],
+            ['', '', '', ''],
+            ['green vortex', '', '', ''],
+            ['', '', '', ''],
+        ],
+        accessways: ['wall', 'purple', 'entrance', 'orange'],
+        escalators: [],
+    },
+    '24': {
+        walls: [
+            'J_  ',
+            '_ J ',
+            'J|J ',
+            '  | ',
+        ],
+        objects: [
+            ['', 'purple vortex', '', ''],
+            ['', '', '', ''],
+            ['', '', '', ''],
+            ['', '', '', ''],
+            ['orange vortex', '', '', ''],
+        ],
+        accessways: ['wall', 'green', 'entrance', 'yellow'],
+        escalators: [],
+        orangeWall: { loc: [3, 2], dir: '|' },
+    },
 };
 
 export const ACTION_TILES: ActionTile[] = [
     {
         numPlayers: [2],
-        actions: [Action.UP, Action.RIGHT, Action.VORTEX],
+        actions: [Action.VORTEX, Action.UP, Action.RIGHT],
     },
     {
         numPlayers: [2],
-        actions: [Action.DOWN, Action.LEFT, Action.ESCALATOR, Action.EXPLORE],
+        actions: [Action.ESCALATOR, Action.EXPLORE, Action.DOWN, Action.LEFT],
+    },
+    {
+        numPlayers: [3, 4, 5, 6, 7, 8],
+        actions: [Action.VORTEX, Action.LEFT],
+    },
+    {
+        numPlayers: [3],
+        actions: [Action.ESCALATOR, Action.EXPLORE, Action.DOWN],
+    },
+    {
+        numPlayers: [3],
+        actions: [Action.UP, Action.RIGHT],
+    },
+    {
+        numPlayers: [4, 5, 6, 7, 8],
+        actions: [Action.EXPLORE, Action.DOWN],
+    },
+    {
+        numPlayers: [4, 5, 6, 7, 8],
+        actions: [Action.ESCALATOR, Action.RIGHT],
+    },
+    {
+        numPlayers: [4, 5, 6, 7, 8],
+        actions: [Action.UP],
+    },
+    {
+        numPlayers: [5, 6, 7, 8],
+        actions: [Action.LEFT],
+    },
+    {
+        numPlayers: [6, 7, 8],
+        actions: [Action.RIGHT],
+    },
+    {
+        numPlayers: [7, 8],
+        actions: [Action.DOWN],
+    },
+    {
+        numPlayers: [8],
+        actions: [Action.UP],
     },
 ];

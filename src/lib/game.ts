@@ -152,8 +152,7 @@ export const Game = {
             pawnLocations: random!.Shuffle([[1, 1], [1, 2], [2, 1], [2, 2]])
                 .map(([localRow, localCol]) => ({ tileId: startTileId, localRow, localCol })),
             placedTiles: { [startTileId]: toPlacedMallTile(startTileId, 0, 0, 0) },
-            unplacedMallTileIds: random!.Shuffle(Object.entries(MALL_TILES).filter(([_id, tile]) => tile.accessways.includes('entrance')))
-                .map(([id, _tile]) => id),
+            unplacedMallTileIds: random!.Shuffle([...new Array(15)].map((_, i) => i).filter(i => i >= 2).map(i => String(i))),
             usedObjects: [],
             vortexSystemEnabled: true,
         };
