@@ -45,6 +45,13 @@ body {
     opacity: 50%;
 }
 
+.info {
+    position: fixed;
+    left: calc(var(--sidebar-width) + 10px);
+    top: 10px;
+    font-size: 36px;
+}
+
 .explore {
     cursor: pointer;
     position: fixed;

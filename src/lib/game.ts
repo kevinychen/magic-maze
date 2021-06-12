@@ -6,6 +6,7 @@ import { Action, Color, GameState, PawnLocation, Wall } from "./types";
 
 const DIRS = [{ drow: -1, dcol: 0 }, { drow: 0, dcol: 1 }, { drow: 1, dcol: 0 }, { drow: 0, dcol: -1 }];
 const INVALID_MOVE = "INVALID_MOVE";
+const TIMER_MILLIS = 180000;
 
 function isAtExploreLocation(dir: number, localRow: number, localCol: number) {
     const { drow, dcol } = DIRS[dir];
@@ -88,7 +89,9 @@ export function getPossibleDestinations(G: GameState, playerID: string, pawn: Co
                 for (let localRow = 0; localRow < 4; localRow++) {
                     for (let localCol = 0; localCol < 4; localCol++) {
                         const destination = { tileId, localRow, localCol };
-                        if (squares[localRow][localCol].vortex === pawn && !pawnLocations.some(loc => isEqual(loc, destination))) {
+                        if (squares[localRow][localCol].vortex === pawn
+                            && !pawnLocations.some(loc => isEqual(loc, destination))
+                            && !possibleDestinations.some(loc => isEqual(loc, destination))) {
                             possibleDestinations.push(destination);
                         }
                     }
@@ -145,6 +148,7 @@ export const Game = {
         return {
             actionTiles: Object.fromEntries(random!.Shuffle(ACTION_TILES.filter(tile => tile.numPlayers.includes(numPlayers)))
                 .map((tile, i) => [i, tile])),
+            clock: { numMillisLeft: TIMER_MILLIS, atTime: Date.now() },
             pawnLocations: random!.Shuffle([[1, 1], [1, 2], [2, 1], [2, 2]])
                 .map(([localRow, localCol]) => ({ tileId: startTileId, localRow, localCol })),
             placedTiles: { [startTileId]: toPlacedMallTile(startTileId, 0, 0, 0) },
@@ -186,6 +190,14 @@ export const Game = {
                 const entranceDir = MALL_TILES[newTileId].accessways.indexOf('entrance');
                 placedTiles[newTileId] = toPlacedMallTile(newTileId, (exploreDir - entranceDir + 6) % 4, row + drow, col + dcol);
             }
+        },
+        sync: {
+            move: (G: GameState) => {
+                const { clock: { numMillisLeft, atTime } } = G;
+                const now = Date.now();
+                G.clock = { numMillisLeft: numMillisLeft - (now - atTime), atTime: now };
+            },
+            client: false,
         },
     },
 };

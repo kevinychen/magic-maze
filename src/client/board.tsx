@@ -5,6 +5,7 @@ import { Action, Color, GameState, MallTile, PawnLocation } from '../lib/types';
 import './board.css';
 import { isEqual } from 'lodash';
 import { getExploreDir, getPossibleDestinations } from '../lib/game';
+import { Clock } from './clock';
 
 const MALL_TILE_SIZE = 555;
 const SQUARE_SIZE = 118;
@@ -69,6 +70,12 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
             <PanZoom
                 className="game"
                 disableDoubleClickZoom={true}
+                keyMapping={{
+                    '87': { x: 0, y: 5, z: 0 },
+                    '83': { x: 0, y: -5, z: 0 },
+                    '65': { x: 5, y: 0, z: 0 },
+                    '68': { x: -5, y: 0, z: 0 },
+                  }}
             >
                 {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile))}
                 {pawnLocations.map((pawnLocation, pawn) => this.renderPawn(pawn, pawnLocation))}
@@ -78,6 +85,7 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
                 <div className="title">MAGIC MAZE</div>
                 {[...new Array(numPlayers)].map((_, i) => this.renderPlayer(playOrder[(playOrderPos + i) % numPlayers]))}
             </div>
+            {this.renderInfo()}
             {this.maybeRenderExplore()}
         </div>;
     }
@@ -105,7 +113,7 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
         >
             {playerID === myPlayerID ? "ME" : `Player ${playerID}:`}
             <br />
-            {actionTiles[playerID].actions.map(action => <span> {this.renderAction(action)}</span>)}
+            {actionTiles[playerID].actions.map(action => <span key={action}> {this.renderAction(action)}</span>)}
         </div>;
     }
 
@@ -144,6 +152,15 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
             }}
             onClick={() => { moves.movePawn(selectedPawn, destination) }}
         />;
+    }
+
+    renderInfo() {
+        const { G: { clock: { numMillisLeft, atTime }}} = this.props;
+        return <span
+            className="info"
+        >
+            <Clock numMillisLeft={numMillisLeft} atTime={atTime} />
+        </span>;
     }
 
     maybeRenderExplore() {

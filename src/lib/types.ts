@@ -40,6 +40,7 @@ export interface ActionTile {
 export interface GameState {
 
     actionTiles: { [playerID: string]: ActionTile };
+    clock: { numMillisLeft: number, atTime: number };
     pawnLocations: PawnLocation[];
     placedTiles: { [tileId: string]: MallTile };
     unplacedMallTileIds: string[];
