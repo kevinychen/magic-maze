@@ -136,7 +136,7 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
 
     renderInfo() {
         const { G, moves } = this.props;
-        const { clock: { numMillisLeft, atTime }, vortexSystemEnabled } = G;
+        const { clock: { numMillisLeft, atTime, frozen }, vortexSystemEnabled } = G;
         const weapons: Color[] = vortexSystemEnabled
             ? getPawnsAt(G, 'weapon')
             : range(4).filter(i => !getPawnsAt(G, 'exit').includes(i));
@@ -146,6 +146,7 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
             <Clock
                 numMillisLeft={numMillisLeft}
                 atTime={atTime}
+                frozen={frozen}
                 timesUp={() => moves.sync()}
             />
             {weapons.map(color => <img

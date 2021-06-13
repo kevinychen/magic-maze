@@ -1,5 +1,6 @@
 import { Ctx } from "boardgame.io";
 import { range, some } from 'lodash';
+import { Clock } from "../client/clock";
 import { ACTION_TILES, MALL_TILES } from "./data";
 import { placeTile } from "./tiles";
 import { Action, Color, GameState, Location, Wall } from "./types";
@@ -143,7 +144,7 @@ export const Game = {
         return {
             actionTiles: Object.fromEntries(random!.Shuffle(ACTION_TILES.filter(tile => tile.numPlayers.includes(numPlayers)))
                 .map((tile, i) => [i, tile])),
-            clock: { numMillisLeft: TIMER_MILLIS, atTime: Date.now() },
+            clock: { numMillisLeft: TIMER_MILLIS, atTime: Date.now(), frozen: true },
             pawnLocations: random!.Shuffle([[1, 1], [1, 2], [2, 1], [2, 2]])
                 .map(([localRow, localCol]) => ({ tileId: startTileId, localRow, localCol })),
             placedTiles: { [startTileId]: placeTile(MALL_TILES[startTileId], 0, 0, 0) },
@@ -159,7 +160,7 @@ export const Game = {
 
     moves: {
         movePawn: (G: GameState, ctx: Ctx, pawn: Color, newLocation: Location) => {
-            const { clock: { numMillisLeft, atTime }, pawnLocations, placedTiles, usedObjects } = G;
+            const { clock: { numMillisLeft, atTime, frozen}, pawnLocations, placedTiles, usedObjects } = G;
             const { playerID } = ctx;
             if (playerID === undefined) {
                 return INVALID_MOVE;
@@ -169,13 +170,16 @@ export const Game = {
             }
             pawnLocations[pawn] = newLocation;
 
+            const now = Date.now();
+            if (frozen) {
+                G.clock = { numMillisLeft, atTime: now, frozen: false };
+            }
             const { tileId, localRow, localCol } = newLocation;
             const { squares } = placedTiles[tileId];
             if (squares[localRow][localCol].timer && !some(usedObjects, newLocation)) {
-                const now = Date.now();
                 const actualNumMillisLeft = numMillisLeft - (now - atTime);
                 usedObjects.push(newLocation);
-                G.clock = { numMillisLeft: TIMER_MILLIS - actualNumMillisLeft, atTime: now };
+                G.clock = { numMillisLeft: TIMER_MILLIS - actualNumMillisLeft, atTime: now, frozen: false };
             }
 
             if (getPawnsAt(G, 'weapon').length === 4) {
@@ -200,9 +204,11 @@ export const Game = {
         },
         sync: {
             move: (G: GameState) => {
-                const { clock: { numMillisLeft, atTime } } = G;
+                const { clock: { numMillisLeft, atTime, frozen } } = G;
                 const now = Date.now();
-                G.clock = { numMillisLeft: numMillisLeft - (now - atTime), atTime: now };
+                if (!frozen) {
+                    G.clock = { numMillisLeft: numMillisLeft - (now - atTime), atTime: now, frozen };
+                }
             },
             client: false,
         },

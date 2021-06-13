@@ -4,6 +4,7 @@ interface Props {
 
     numMillisLeft: number;
     atTime: number;
+    frozen: boolean;
     timesUp: () => void;
 }
 
@@ -24,7 +25,7 @@ export class Clock extends React.Component<Props, State> {
     }
 
     componentDidMount() {
-        this.updateTime();
+        this.updateState();
     }
 
     componentWillUnmount() {
@@ -35,8 +36,7 @@ export class Clock extends React.Component<Props, State> {
 
     componentDidUpdate(prevProps: Props) {
         if (this.props.atTime !== prevProps.atTime) {
-            this.atLocalTime = Date.now();
-            this.updateTime();
+            this.updateState();
         }
     }
 
@@ -47,6 +47,16 @@ export class Clock extends React.Component<Props, State> {
             return "TIME'S UP";
         }
         return `${Math.floor(numSeconds / 60)}:${numSeconds % 60 < 10 ? '0' : ''}${numSeconds % 60}`;
+    }
+
+    updateState() {
+        const { numMillisLeft, frozen } = this.props;
+        this.atLocalTime = Date.now();
+        if (frozen) {
+            this.setState({ actualNumMillisLeft: numMillisLeft });
+        } else {
+            this.updateTime();
+        }
     }
 
     updateTime = () => {
