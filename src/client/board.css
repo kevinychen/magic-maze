@@ -26,6 +26,22 @@ body {
     z-index: -1;
 }
 
+.game .yellow {
+    background-color: yellow;
+}
+
+.game .purple {
+    background-color: purple;
+}
+
+.game .green {
+    background-color: green;
+}
+
+.game .orange {
+    background-color: orange;
+}
+
 .game img {
     pointer-events: none;
 }
@@ -33,6 +49,8 @@ body {
 .game .dot {
     border-radius: 50%;
     box-shadow: 2px 2px #8675af;
+    border: 1px solid black;
+    transform: translate(-1x, -1px);
 }
 
 .game .dot.selected {

@@ -1,19 +1,15 @@
 import { Ctx } from "boardgame.io";
-import { isEqual } from 'lodash';
+import { range, some } from 'lodash';
 import { ACTION_TILES, MALL_TILES } from "./data";
-import { toPlacedMallTile } from "./helper";
-import { Action, Color, GameState, PawnLocation, Wall } from "./types";
+import { placeTile } from "./tiles";
+import { Action, Color, GameState, Location, Wall } from "./types";
 
 const DIRS = [{ drow: -1, dcol: 0 }, { drow: 0, dcol: 1 }, { drow: 1, dcol: 0 }, { drow: 0, dcol: -1 }];
+const EXPLORE_LOCATIONS = [{ row: 0, col: 2 }, { row: 2, col: 3 }, { row: 3, col: 1 }, { row: 1, col: 0 }];
 const INVALID_MOVE = "INVALID_MOVE";
 const TIMER_MILLIS = 180000;
 
-function isAtExploreLocation(dir: number, localRow: number, localCol: number) {
-    const { drow, dcol } = DIRS[dir];
-    return 2 * localRow === 3 + 3 * drow + dcol && 2 * localCol === 3 + 3 * dcol - drow;
-}
-
-function makeMove(G: GameState, pawn: Color, pawnLocation: PawnLocation, dir: Action): PawnLocation | undefined {
+function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action): Location | undefined {
     const { pawnLocations, placedTiles } = G;
     const { tileId, localRow, localCol } = pawnLocation;
     const { row, col, squares, entranceDir, exploreDirs, escalators } = placedTiles[tileId];
@@ -25,9 +21,9 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: PawnLocation, dir: Ac
             : { tileId, localRow: escalator.endRow, localCol: escalator.endCol };
     }
 
-    // Check if currently at an accessway
+    // Check if currently at an exit to a neighboring tile
     const { drow, dcol } = DIRS[dir];
-    if (isAtExploreLocation(dir, localRow, localCol)) {
+    if (localRow === EXPLORE_LOCATIONS[dir].row && localCol === EXPLORE_LOCATIONS[dir].col) {
         if (entranceDir !== dir && exploreDirs[dir] === undefined) {
             return undefined;
         }
@@ -56,30 +52,30 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: PawnLocation, dir: Ac
 
     // Check for another pawn
     const destination = { tileId: tileId, localRow: localRow + drow, localCol: localCol + dcol };
-    if (pawnLocations.some(loc => isEqual(loc, destination))) {
+    if (some(pawnLocations, destination)) {
         return undefined;
     }
 
     return destination;
 }
 
-export function getPossibleDestinations(G: GameState, playerID: string, pawn: Color): PawnLocation[] {
+export function getPossibleDestinations(G: GameState, playerID: string, pawn: Color): Location[] {
     const { actionTiles, pawnLocations, placedTiles, vortexSystemEnabled } = G;
     const actions = actionTiles[playerID].actions;
-    const possibleDestinations: PawnLocation[] = [];
-    for (let action of actions) {
-        let loc = pawnLocations[pawn];
+    const possibleDestinations: Location[] = [];
+    for (const action of actions) {
+        let location = pawnLocations[pawn];
         if (action < Action.ESCALATOR) {
             while (true) {
-                const newLocation = makeMove(G, pawn, loc, action);
+                const newLocation = makeMove(G, pawn, location, action);
                 if (newLocation === undefined) {
                     break;
                 }
                 possibleDestinations.push(newLocation);
-                loc = newLocation;
+                location = newLocation;
             }
         } else if (action === Action.ESCALATOR) {
-            const newLocation = makeMove(G, pawn, loc, action);
+            const newLocation = makeMove(G, pawn, location, action);
             if (newLocation !== undefined) {
                 possibleDestinations.push(newLocation);
             }
@@ -90,8 +86,8 @@ export function getPossibleDestinations(G: GameState, playerID: string, pawn: Co
                     for (let localCol = 0; localCol < 4; localCol++) {
                         const destination = { tileId, localRow, localCol };
                         if (squares[localRow][localCol].vortex === pawn
-                            && !pawnLocations.some(loc => isEqual(loc, destination))
-                            && !possibleDestinations.some(loc => isEqual(loc, destination))) {
+                            && !some(pawnLocations, destination)
+                            && !some(possibleDestinations, destination)) {
                             possibleDestinations.push(destination);
                         }
                     }
@@ -104,32 +100,31 @@ export function getPossibleDestinations(G: GameState, playerID: string, pawn: Co
 
 export function getExploreDir(G: GameState, playerID: string, pawn: Color): number | undefined {
     const { actionTiles, pawnLocations, placedTiles, unplacedMallTileIds } = G;
-    if (!actionTiles[playerID!].actions.includes(Action.EXPLORE)) {
+    if (!actionTiles[playerID].actions.includes(Action.EXPLORE)) {
+        return undefined;
+    }
+    if (unplacedMallTileIds.length === 0) {
         return undefined;
     }
     const { tileId, localRow, localCol } = pawnLocations[pawn];
-    for (let dir = 0; dir < 4; dir++) {
-        if (isAtExploreLocation(dir, localRow, localCol)) {
-            const { row, col, exploreDirs } = placedTiles[tileId];
-            if (exploreDirs[dir] !== pawn) {
-                return undefined;
-            }
-            const { drow, dcol } = DIRS[dir];
-            if (Object.values(placedTiles).some(tile => tile.row === row + drow && tile.col === col + dcol)) {
-                return undefined;
-            }
-            if (unplacedMallTileIds.length === 0) {
-                return undefined;
-            }
-            return dir;
-        }
+    const exploreDir = EXPLORE_LOCATIONS.findIndex(loc => loc.row === localRow && loc.col === localCol);
+    if (exploreDir === -1) {
+        return undefined;
     }
+    const { row, col, exploreDirs } = placedTiles[tileId];
+    if (exploreDirs[exploreDir] !== pawn) {
+        return undefined;
+    }
+    const { drow, dcol } = DIRS[exploreDir];
+    if (Object.values(placedTiles).some(tile => tile.row === row + drow && tile.col === col + dcol)) {
+        return undefined;
+    }
+    return exploreDir;
 }
 
 export function getPawnsAt(G: GameState, locationType: 'weapon' | 'exit'): Color[] {
     const { pawnLocations, placedTiles } = G;
-    return [...new Array(4)]
-        .map((_, i) => i)
+    return range(4)
         .filter(i => {
             const { tileId, localRow, localCol } = pawnLocations[i];
             const { squares } = placedTiles[tileId];
@@ -144,15 +139,15 @@ export const Game = {
 
     setup: (ctx: Ctx): GameState => {
         const { numPlayers, random } = ctx;
-        const startTileId = '1a'; // TODO
+        const startTileId = '1a';
         return {
             actionTiles: Object.fromEntries(random!.Shuffle(ACTION_TILES.filter(tile => tile.numPlayers.includes(numPlayers)))
                 .map((tile, i) => [i, tile])),
             clock: { numMillisLeft: TIMER_MILLIS, atTime: Date.now() },
             pawnLocations: random!.Shuffle([[1, 1], [1, 2], [2, 1], [2, 2]])
                 .map(([localRow, localCol]) => ({ tileId: startTileId, localRow, localCol })),
-            placedTiles: { [startTileId]: toPlacedMallTile(startTileId, 0, 0, 0) },
-            unplacedMallTileIds: random!.Shuffle([...new Array(15)].map((_, i) => i).filter(i => i >= 2).map(i => String(i))),
+            placedTiles: { [startTileId]: placeTile(MALL_TILES[startTileId], 0, 0, 0) },
+            unplacedMallTileIds: random!.Shuffle(range(15).filter(i => i >= 2).map(i => String(i))),
             usedObjects: [],
             vortexSystemEnabled: true,
         };
@@ -163,20 +158,20 @@ export const Game = {
     },
 
     moves: {
-        movePawn: (G: GameState, ctx: Ctx, pawn: Color, newLocation: PawnLocation) => {
+        movePawn: (G: GameState, ctx: Ctx, pawn: Color, newLocation: Location) => {
             const { clock: { numMillisLeft, atTime }, pawnLocations, placedTiles, usedObjects } = G;
             const { playerID } = ctx;
             if (playerID === undefined) {
                 return INVALID_MOVE;
             }
-            if (!getPossibleDestinations(G, playerID, pawn).some(loc => isEqual(loc, newLocation))) {
+            if (!some(getPossibleDestinations(G, playerID, pawn), newLocation)) {
                 return INVALID_MOVE;
             }
             pawnLocations[pawn] = newLocation;
 
             const { tileId, localRow, localCol } = newLocation;
             const { squares } = placedTiles[tileId];
-            if (squares[localRow][localCol].timer && !usedObjects.some(loc => isEqual(loc, newLocation))) {
+            if (squares[localRow][localCol].timer && !some(usedObjects, newLocation)) {
                 const now = Date.now();
                 const actualNumMillisLeft = numMillisLeft - (now - atTime);
                 usedObjects.push(newLocation);
@@ -194,13 +189,14 @@ export const Game = {
                 return INVALID_MOVE;
             }
             const exploreDir = getExploreDir(G, playerID, pawn);
-            if (exploreDir !== undefined) {
-                const { row, col } = placedTiles[pawnLocations[pawn].tileId];
-                const { drow, dcol } = DIRS[exploreDir];
-                const newTileId = unplacedMallTileIds.pop()!;
-                const entranceDir = MALL_TILES[newTileId].accessways.indexOf('entrance');
-                placedTiles[newTileId] = toPlacedMallTile(newTileId, (exploreDir - entranceDir + 6) % 4, row + drow, col + dcol);
+            if (exploreDir === undefined) {
+                return INVALID_MOVE;
             }
+            const { row, col } = placedTiles[pawnLocations[pawn].tileId];
+            const { drow, dcol } = DIRS[exploreDir];
+            const newTileId = unplacedMallTileIds.pop()!;
+            const entranceDir = MALL_TILES[newTileId].entranceDir!;
+            placedTiles[newTileId] = placeTile(MALL_TILES[newTileId], (exploreDir - entranceDir + 6) % 4, row + drow, col + dcol);
         },
         sync: {
             move: (G: GameState) => {

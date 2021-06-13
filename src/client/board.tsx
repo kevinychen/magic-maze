@@ -1,16 +1,15 @@
 import { BoardProps } from 'boardgame.io/react';
-import React from 'react';
+import React, { Key } from 'react';
 import { PanZoom } from 'react-easy-panzoom'
-import { Color, GameState, MallTile, PawnLocation } from '../lib/types';
-import './board.css';
-import { isEqual } from 'lodash';
+import { Color, GameState, Location, MallTile } from '../lib/types';
+import { isEqual, range } from 'lodash';
 import { getExploreDir, getPawnsAt, getPossibleDestinations } from '../lib/game';
 import { Clock } from './clock';
+import './board.css';
 
 const MALL_TILE_SIZE = 555;
 const SQUARE_SIZE = 118;
 const PAWN_SIZE = 60;
-const PAWN_BORDER = 2;
 const COLORS = {
     [Color.GREEN]: 'green',
     [Color.ORANGE]: 'orange',
@@ -21,7 +20,7 @@ const COLORS = {
 interface BoardState {
 
     selectedPawn?: Color;
-    possibleDestinations: PawnLocation[];
+    possibleDestinations: Location[];
     canExplore: boolean;
 }
 
@@ -60,8 +59,8 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
     }
 
     render() {
-        const { G: { pawnLocations, placedTiles, usedObjects }, ctx: { numPlayers, playOrder, playOrderPos } } = this.props;
-        const { possibleDestinations } = this.state;
+        const { G: { pawnLocations, placedTiles, usedObjects }, ctx: { numPlayers, playOrder, playOrderPos }, moves } = this.props;
+        const { selectedPawn, possibleDestinations } = this.state;
         return <div className="board">
             <PanZoom
                 className="game"
@@ -74,13 +73,15 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
                 }}
             >
                 {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile))}
-                {usedObjects.map(loc => this.renderUsedObject(loc))}
-                {possibleDestinations.map(loc => this.renderPossibleDestination(loc))}
-                {pawnLocations.map((pawnLocation, pawn) => this.renderPawn(pawn, pawnLocation))}
+                {usedObjects.map((loc, i) => this.renderObject(i, loc, SQUARE_SIZE, 'used'))}
+                {possibleDestinations.map((loc, i) => this.renderObject(i, loc, SQUARE_SIZE, 'destination', () => moves.movePawn(selectedPawn, loc)))}
+                {pawnLocations.map((pawnLocation, pawn) => this.renderObject(pawn, pawnLocation, PAWN_SIZE,
+                    `dot ${COLORS[pawn as Color]}${selectedPawn === pawn ? ' selected' : ''}`,
+                    () => this.setState({ selectedPawn: selectedPawn === pawn ? undefined : pawn })))}
             </PanZoom>
             <div className="sidebar">
                 <div className="title">MAGIC MAZE</div>
-                {[...new Array(numPlayers)].map((_, i) => this.renderPlayer(playOrder[(playOrderPos + i) % numPlayers]))}
+                {range(numPlayers).map(i => this.renderPlayer(playOrder[(playOrderPos + i) % numPlayers]))}
             </div>
             {this.renderInfo()}
             {this.maybeRenderExplore()}
@@ -117,56 +118,19 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
         </div>;
     }
 
-    renderPawn(pawn: Color, { tileId, localRow, localCol }: PawnLocation) {
-        const { G: { placedTiles } } = this.props;
-        const { selectedPawn } = this.state;
-        const { row, col } = placedTiles[tileId];
-        return <span
-            key={pawn}
-            className={'object dot' + (selectedPawn === pawn ? ' selected' : '')}
-            style={{
-                width: PAWN_SIZE,
-                height: PAWN_SIZE,
-                top: `${row * MALL_TILE_SIZE + (col + localRow) * SQUARE_SIZE + (MALL_TILE_SIZE - 3 * SQUARE_SIZE - PAWN_SIZE) / 2 - PAWN_BORDER}px`,
-                left: `${col * MALL_TILE_SIZE + (-row + localCol) * SQUARE_SIZE + (MALL_TILE_SIZE - 3 * SQUARE_SIZE - PAWN_SIZE) / 2 - PAWN_BORDER}px`,
-                backgroundColor: COLORS[pawn],
-                border: `${PAWN_BORDER}px solid black`,
-            }}
-            onClick={() => this.setState({ selectedPawn: selectedPawn === pawn ? undefined : pawn })}
-        />;
-    }
-
-    renderPossibleDestination(destination: PawnLocation) {
-        const { tileId, localRow, localCol } = destination;
-        const { G: { placedTiles }, moves } = this.props;
-        const { selectedPawn } = this.state;
-        const { row, col } = placedTiles[tileId];
-        return <span
-            key={`${tileId}-${localRow}-${localCol}`}
-            className="object destination"
-            style={{
-                width: SQUARE_SIZE,
-                height: SQUARE_SIZE,
-                top: `${row * MALL_TILE_SIZE + (col + localRow) * SQUARE_SIZE + (MALL_TILE_SIZE - 4 * SQUARE_SIZE) / 2}px`,
-                left: `${col * MALL_TILE_SIZE + (-row + localCol) * SQUARE_SIZE + (MALL_TILE_SIZE - 4 * SQUARE_SIZE) / 2}px`,
-            }}
-            onClick={() => { moves.movePawn(selectedPawn, destination) }}
-        />;
-    }
-
-    renderUsedObject(location: PawnLocation) {
-        const { tileId, localRow, localCol } = location;
+    renderObject(key: Key, { tileId, localRow, localCol }: Location, size: number, className: string, onClick?: (() => void)) {
         const { G: { placedTiles } } = this.props;
         const { row, col } = placedTiles[tileId];
         return <span
-            key={`${tileId}-${localRow}-${localCol}`}
-            className="object used"
+            key={key}
+            className={`object ${className}`}
             style={{
-                width: SQUARE_SIZE,
-                height: SQUARE_SIZE,
-                top: `${row * MALL_TILE_SIZE + (col + localRow) * SQUARE_SIZE + (MALL_TILE_SIZE - 4 * SQUARE_SIZE) / 2}px`,
-                left: `${col * MALL_TILE_SIZE + (-row + localCol) * SQUARE_SIZE + (MALL_TILE_SIZE - 4 * SQUARE_SIZE) / 2}px`,
+                width: size,
+                height: size,
+                top: `${row * MALL_TILE_SIZE + (col + localRow) * SQUARE_SIZE + (MALL_TILE_SIZE - 3 * SQUARE_SIZE - size) / 2}px`,
+                left: `${col * MALL_TILE_SIZE + (-row + localCol) * SQUARE_SIZE + (MALL_TILE_SIZE - 3 * SQUARE_SIZE - size) / 2}px`,
             }}
+            onClick={onClick}
         />;
     }
 
@@ -175,7 +139,7 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
         const { clock: { numMillisLeft, atTime }, vortexSystemEnabled } = G;
         const weapons: Color[] = vortexSystemEnabled
             ? getPawnsAt(G, 'weapon')
-            : [...new Array(4)].map((_, i) => i).filter(i => !getPawnsAt(G, 'exit').includes(i));
+            : range(4).filter(i => !getPawnsAt(G, 'exit').includes(i));
         return <span
             className="info"
         >

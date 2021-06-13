@@ -2,7 +2,7 @@ export enum Wall { ORANGE, FULL };
 export enum Color { YELLOW, PURPLE, GREEN, ORANGE };
 export enum Action { UP, RIGHT, DOWN, LEFT, ESCALATOR, EXPLORE, VORTEX };
 
-export interface PawnLocation {
+export interface Location {
 
     tileId: string;
     localRow: number;
@@ -18,17 +18,15 @@ export interface Square {
     weapon?: Color;
 }
 
-export interface MallTile {
-
-    row: number;
-    col: number;
-    dir: number;
+export interface UnplacedMallTile {
 
     squares: Square[][];
     entranceDir?: number,
     exploreDirs: (Color | undefined)[],
     escalators: { startRow: number, startCol: number, endRow: number, endCol: number }[];
 }
+
+export type MallTile = UnplacedMallTile & { row: number, col: number, dir: number };
 
 export interface ActionTile {
 
@@ -41,9 +39,9 @@ export interface GameState {
 
     actionTiles: { [playerID: string]: ActionTile };
     clock: { numMillisLeft: number, atTime: number };
-    pawnLocations: PawnLocation[];
+    pawnLocations: Location[];
     placedTiles: { [tileId: string]: MallTile };
     unplacedMallTileIds: string[];
-    usedObjects: PawnLocation[];
+    usedObjects: Location[];
     vortexSystemEnabled: boolean;
 }
