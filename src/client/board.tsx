@@ -71,6 +71,8 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
                     '65': { x: 5, y: 0, z: 0 },
                     '68': { x: -5, y: 0, z: 0 },
                 }}
+                minZoom={0.1}
+                maxZoom={5}
             >
                 {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile))}
                 {usedObjects.map((loc, i) => this.renderObject(i, loc, SQUARE_SIZE, 'used'))}

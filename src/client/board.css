@@ -12,6 +12,11 @@ body {
     margin: 0px;
 }
 
+img {
+    pointer-events: none;
+    border-radius: 10px;
+}
+
 .game {
     position: absolute;
     background-color: #d0cedc;
@@ -40,10 +45,6 @@ body {
 
 .game .orange {
     background-color: orange;
-}
-
-.game img {
-    pointer-events: none;
 }
 
 .game .dot {

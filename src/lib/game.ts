@@ -1,6 +1,5 @@
 import { Ctx } from "boardgame.io";
 import { range, some } from 'lodash';
-import { Clock } from "../client/clock";
 import { ACTION_TILES, MALL_TILES } from "./data";
 import { placeTile } from "./tiles";
 import { Action, Color, GameState, Location, Wall } from "./types";
@@ -213,6 +212,9 @@ export const Game = {
             client: false,
         },
     },
+
+    minPlayers: 2,
+    maxPlayers: 8,
 
     endIf: (G: GameState) => {
         const { clock: { numMillisLeft }, vortexSystemEnabled } = G;
