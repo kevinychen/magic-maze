@@ -1,0 +1,28 @@
+.alert-border {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    box-shadow: 0 0 1000px red inset;
+}
+
+.alert-border.enabled {
+    opacity: 1;
+}
+
+.alert-border.disabled {
+    transition: 1s ease-out;
+    opacity: 0;
+}
+
+.alert-msg {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    -webkit-text-stroke: 4px red;
+    text-shadow: 4px 4px #8675af;
+    font-family: 'Maiandra';
+    font-size: 50px;
+}

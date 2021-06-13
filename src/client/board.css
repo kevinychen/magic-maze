@@ -12,11 +12,6 @@ body {
     margin: 0px;
 }
 
-img {
-    pointer-events: none;
-    border-radius: 10px;
-}
-
 .game {
     position: absolute;
     background-color: #d0cedc;
@@ -24,6 +19,11 @@ img {
     width: calc(100vw - var(--sidebar-width));
     height: 100vh;
     overflow: none;
+}
+
+.game img {
+    pointer-events: none;
+    border-radius: 10px;
 }
 
 .game .object {
@@ -69,10 +69,6 @@ img {
     opacity: 50%;
 }
 
-.action {
-    width: 100px;
-}
-
 .info {
     position: fixed;
     left: calc(var(--sidebar-width) + 10px);
@@ -93,29 +89,4 @@ img {
     left: calc(var(--sidebar-width) + 10px);
     bottom: 10px;
     font-size: 72px;
-}
-
-.sidebar {
-    position: absolute;
-    width: var(--sidebar-width);
-    height: 100vh;
-    background-color: #8675af;
-    color: white;
-    font-family: 'Maiandra';
-    font-size: 24px;
-    -webkit-text-stroke: 2px #3c1049;
-    display: inline-block;
-}
-
-.sidebar .title {
-    font-size: 32px;
-    margin: 10px;
-}
-
-.sidebar .player {
-    margin: 10px;
-}
-
-.sidebar .me {
-    font-size: 28px;
 }

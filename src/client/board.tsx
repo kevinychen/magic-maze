@@ -6,6 +6,8 @@ import { isEqual, range } from 'lodash';
 import { getExploreDir, getPawnsAt, getPossibleDestinations } from '../lib/game';
 import { Clock } from './clock';
 import './board.css';
+import { Sidebar } from './sidebar';
+import { Alert } from './alert';
 
 const MALL_TILE_SIZE = 555;
 const SQUARE_SIZE = 118;
@@ -17,14 +19,14 @@ const COLORS = {
     [Color.PURPLE]: 'purple',
 };
 
-interface BoardState {
+interface State {
 
     selectedPawn?: Color;
     possibleDestinations: Location[];
     canExplore: boolean;
 }
 
-export class Board extends React.Component<BoardProps<GameState>, BoardState> {
+export class Board extends React.Component<BoardProps<GameState>, State> {
 
     constructor(props: BoardProps) {
         super(props);
@@ -59,7 +61,7 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
     }
 
     render() {
-        const { G: { pawnLocations, placedTiles, usedObjects }, ctx: { numPlayers, playOrder, playOrderPos }, moves } = this.props;
+        const { G: { pawnLocations, placedTiles, usedObjects }, moves } = this.props;
         const { selectedPawn, possibleDestinations } = this.state;
         return <div className="board">
             <PanZoom
@@ -81,12 +83,10 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
                     `dot ${COLORS[pawn as Color]}${selectedPawn === pawn ? ' selected' : ''}`,
                     () => this.setState({ selectedPawn: selectedPawn === pawn ? undefined : pawn })))}
             </PanZoom>
-            <div className="sidebar">
-                <div className="title">MAGIC MAZE</div>
-                {range(numPlayers).map(i => this.renderPlayer(playOrder[(playOrderPos + i) % numPlayers]))}
-            </div>
+            <Sidebar {...this.props} />
             {this.renderInfo()}
             {this.maybeRenderExplore()}
+            <Alert {...this.props} />
         </div>;
     }
 
@@ -103,21 +103,6 @@ export class Board extends React.Component<BoardProps<GameState>, BoardState> {
                 transformOrigin: "center",
             }}
         />;
-    }
-
-    renderPlayer(playerID: string) {
-        const { G: { actionTiles, vortexSystemEnabled }, playerID: myPlayerID } = this.props;
-        return <div
-            key={playerID}
-            className={"player" + (playerID === myPlayerID ? " me" : "")}
-        >
-            {`${playerID === myPlayerID ? "ME" : `Player ${playerID}`}: `}
-            <img
-                className="action"
-                src={`./actions/${vortexSystemEnabled ? 'normal' : 'flip'}${actionTiles[playerID].id}.jpg`}
-                alt=''
-            />
-        </div>;
     }
 
     renderObject(key: Key, { tileId, localRow, localCol }: Location, size: number, className: string, onClick?: (() => void)) {

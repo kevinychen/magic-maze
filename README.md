@@ -23,6 +23,7 @@ Then go to http://localhost:9100.
 ## Credits
 
 - [Shanky Panky's TTS mod](https://steamcommunity.com/sharedfiles/filedetails/?id=1113582696) for image assets
+- [ashugeo](https://github.com/ashugeo/magic-maze) for design inspiration
 - [Fonts Geek](https://fontsgeek.com/fonts/Maiandra-Black-Regular) for the Maiandra font
 - [boardgame.io](https://boardgame.io/), a very convenient framework for producing online multiplayer games
 - [React Easy Panzoom](https://www.npmjs.com/package/react-easy-panzoom) for an easy-to-use panzoom library

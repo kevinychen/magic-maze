@@ -211,6 +211,16 @@ export const Game = {
             },
             client: false,
         },
+        moveDoSomethingPawn: {
+            move: (G: GameState, ctx: Ctx, playerID: string) => {
+                const { playerID: byPlayerID } = ctx;
+                if (byPlayerID === undefined) {
+                    throw INVALID_MOVE;
+                }
+                G.doSomethingPawn = { playerID, byPlayerID, atTime: Date.now() };
+            },
+            client: false,
+        },
     },
 
     minPlayers: 2,

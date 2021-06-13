@@ -1,0 +1,36 @@
+.sidebar {
+    position: absolute;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background-color: #8675af;
+    color: white;
+    font-family: 'Maiandra';
+    font-size: 24px;
+    -webkit-text-stroke: 2px #3c1049;
+    display: inline-block;
+}
+
+.sidebar .title {
+    font-size: 32px;
+    margin: 10px;
+}
+
+.sidebar .player {
+    margin: 10px;
+}
+
+.sidebar .action {
+    height: 100%;
+    border-radius: 10px;
+}
+
+.sidebar .player-info {
+    position: absolute;
+    display: inline-block;
+    margin: 10px;
+}
+
+.sidebar .alert {
+    height: 40px;
+    cursor: pointer;
+}
