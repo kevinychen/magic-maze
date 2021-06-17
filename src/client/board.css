@@ -12,6 +12,12 @@ body {
     margin: 0px;
 }
 
+.board {
+    font-family: 'Maiandra';
+    color: white;
+    -webkit-text-stroke: 2px #3c1049;
+}
+
 .game {
     position: absolute;
     background-color: #d0cedc;
@@ -69,16 +75,26 @@ body {
     opacity: 50%;
 }
 
-.info {
+.board .info {
     position: fixed;
     left: calc(var(--sidebar-width) + 10px);
     top: 10px;
-    font-size: 36px;
 }
 
-.weapon {
-    width: 40px;
-    height: 40px;
+.board .info .section {
+    border: 3px solid #8675af;
+    background-color: #fae6cd;
+    margin-right: 10px;
+    font-size: 32px;
+}
+
+.board .info .section.text {
+    padding: 0px 5px;
+}
+
+.board .info .weapon {
+    height: 39px;
+    margin-bottom: -7.5px;
 }
 
 .explore {

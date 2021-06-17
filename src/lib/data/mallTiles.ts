@@ -187,7 +187,7 @@ export const HUMAN_READABLE_MALL_TILES: { [id: string]: HumanReadableMallTile } 
     '10': {
         walls: [
             '_||_',
-            '_J_ ',
+            '|J_ ',
             ' || ',
             '||| ',
         ],

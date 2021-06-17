@@ -3,10 +3,7 @@
     width: var(--sidebar-width);
     height: 100vh;
     background-color: #8675af;
-    color: white;
-    font-family: 'Maiandra';
     font-size: 24px;
-    -webkit-text-stroke: 2px #3c1049;
     display: inline-block;
 }
 

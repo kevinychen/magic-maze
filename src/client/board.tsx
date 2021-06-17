@@ -123,26 +123,35 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
 
     renderInfo() {
         const { G, moves } = this.props;
-        const { clock: { numMillisLeft, atTime, frozen }, vortexSystemEnabled } = G;
+        const { clock: { numMillisLeft, atTime, frozen }, unplacedMallTileIds, vortexSystemEnabled } = G;
         const weapons: Color[] = vortexSystemEnabled
             ? getPawnsAt(G, 'weapon')
             : range(4).filter(i => !getPawnsAt(G, 'exit').includes(i));
-        return <span
+        return <div
             className="info"
         >
-            <Clock
-                numMillisLeft={numMillisLeft}
-                atTime={atTime}
-                frozen={frozen}
-                timesUp={() => moves.sync()}
-            />
-            {weapons.map(color => <img
-                key={color}
-                className="weapon"
-                src={`./weapons/${COLORS[color]}.png`}
-                alt={`${COLORS[color]} weapon`}
-            />)}
-        </span>;
+            <span className="section text">
+                <Clock
+                    numMillisLeft={numMillisLeft}
+                    atTime={atTime}
+                    frozen={frozen}
+                    timesUp={() => moves.sync()}
+                />
+            </span>
+            <span className="section text">
+                {`🔍 x${unplacedMallTileIds.length}`}
+            </span>
+            {weapons.length === 0
+                ? undefined
+                : <span className="section">
+                    {weapons.map(color => <img
+                        key={color}
+                        className="weapon"
+                        src={`./weapons/${COLORS[color]}.png`}
+                        alt={`${COLORS[color]} weapon`}
+                    />)}
+                </span>}
+        </div>;
     }
 
     maybeRenderExplore() {

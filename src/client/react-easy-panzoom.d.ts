@@ -41,6 +41,6 @@ declare module 'react-easy-panzoom' {
       style?: React.StyleHTMLAttributes;
       onStateChange?: (data: OnStateChangeData) => void;
       children: React.ReactNode;
-      className: string;
+      className?: string;
     }): React.ReactElement;
   }
