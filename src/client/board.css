@@ -65,14 +65,19 @@ body {
     background-color: orange;
 }
 
-.game .dot {
+.game .pawn {
     border-radius: 50%;
-    box-shadow: 2px 2px #8675af;
-    border: 1px solid black;
-    transform: translate(-1x, -1px);
+    box-shadow: #8675af 1px 1px 1px,
+        #8675af 2px 2px 1px,
+        #8675af 3px 3px 1px,
+        #8675af 4px 4px 1px,
+        #8675af 5px 5px 1px;
+    border: 3px solid black;
+    transform: translate(-4px, -4px);
+    pointer-events: unset;
 }
 
-.game .dot.selected {
+.game .pawn.selected {
     outline: 3px dotted #8675af;
     outline-offset: 3px;
 }

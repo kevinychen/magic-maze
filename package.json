@@ -10,6 +10,7 @@
     "react-dom": "^17.0.1",
     "react-easy-panzoom": "^0.4.4",
     "react-scripts": "4.0.1",
+    "react-spring": "^9.2.3",
     "redux-logger": "^3.0.6"
   },
   "devDependencies": {
