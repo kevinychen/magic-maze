@@ -37,6 +37,18 @@ body {
     z-index: -1;
 }
 
+.game .unplaced {
+    opacity: 0.2;
+}
+
+.game .explorable {
+    pointer-events: unset;
+}
+
+.game .explorable:hover {
+    opacity: 0.7;
+}
+
 .game .yellow {
     background-color: yellow;
 }
@@ -83,26 +95,32 @@ body {
 
 .board .info .section {
     border: 3px solid #8675af;
+    border-radius: 5px;
     background-color: #fae6cd;
-    margin-right: 10px;
+    margin-right: 5px;
     font-size: 32px;
 }
 
-.board .info .section.text {
+.board .info .section.timer {
     padding: 0px 5px;
+}
+
+.board .info .section.explore {
+    padding: 0px 5px;
+    cursor: pointer;
+}
+
+.board .info .section.explore.disabled:hover {
+    background-color: #ff8888;
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.board .info .section.explore.enabled:hover {
+    background-color: lightgreen;
 }
 
 .board .info .weapon {
     height: 39px;
     margin-bottom: -7.5px;
-}
-
-.explore {
-    cursor: pointer;
-    position: fixed;
-    width: 80px;
-    height: 80px;
-    left: calc(var(--sidebar-width) + 10px);
-    bottom: 10px;
-    font-size: 72px;
 }

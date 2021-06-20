@@ -1,13 +1,13 @@
 import { BoardProps } from 'boardgame.io/react';
+import { intersectionWith, isEqual, range } from 'lodash';
 import React, { Key } from 'react';
 import { PanZoom } from 'react-easy-panzoom'
-import { Color, GameState, Location, MallTile } from '../lib/types';
-import { isEqual, range } from 'lodash';
-import { getExploreDir, getPawnsAt, getPossibleDestinations } from '../lib/game';
-import { Clock } from './clock';
-import './board.css';
-import { Sidebar } from './sidebar';
+import { getExplorableAreas, getPawnsAt, getPossibleDestinations } from '../lib/game';
+import { Action, Color, GameState, Location, TilePlacement } from '../lib/types';
 import { Alert } from './alert';
+import { Clock } from './clock';
+import { Sidebar } from './sidebar';
+import './board.css';
 
 const MALL_TILE_SIZE = 555;
 const SQUARE_SIZE = 118;
@@ -23,7 +23,7 @@ interface State {
 
     selectedPawn?: Color;
     possibleDestinations: Location[];
-    canExplore: boolean;
+    currentlyExplorableAreas: TilePlacement[];
 }
 
 export class Board extends React.Component<BoardProps<GameState>, State> {
@@ -32,7 +32,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
         super(props);
         this.state = {
             possibleDestinations: [],
-            canExplore: false,
+            currentlyExplorableAreas: [],
         };
     }
 
@@ -43,26 +43,27 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
 
     componentDidUpdate() {
         const { G, playerID } = this.props;
-        const { selectedPawn, possibleDestinations, canExplore } = this.state;
+        const { selectedPawn, possibleDestinations, currentlyExplorableAreas } = this.state;
 
-        const newState = playerID !== null && selectedPawn !== undefined
-            ? {
-                possibleDestinations: getPossibleDestinations(G, playerID, selectedPawn),
-                canExplore: getExploreDir(G, playerID, selectedPawn) !== undefined,
+        const newState: State = {
+            possibleDestinations: [],
+            currentlyExplorableAreas: [],
+        };
+        if (playerID !== null) {
+            if (selectedPawn !== undefined) {
+                newState.possibleDestinations = getPossibleDestinations(G, playerID, selectedPawn);
             }
-            : {
-                possibleDestinations: [],
-                canExplore: false,
-            };
+            newState.currentlyExplorableAreas = getExplorableAreas(G);
+        }
         if (!isEqual(possibleDestinations, newState.possibleDestinations)
-            || canExplore !== newState.canExplore) {
+            || !isEqual(currentlyExplorableAreas, newState.currentlyExplorableAreas)) {
             this.setState(newState);
         }
     }
 
     render() {
-        const { G: { pawnLocations, placedTiles, usedObjects }, moves } = this.props;
-        const { selectedPawn, possibleDestinations } = this.state;
+        const { G: { explorableAreas, pawnLocations, placedTiles, unplacedMallTileIds, usedObjects }, moves } = this.props;
+        const { selectedPawn, possibleDestinations, currentlyExplorableAreas } = this.state;
         return <div className="board">
             <PanZoom
                 className="game"
@@ -77,23 +78,27 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                 maxZoom={5}
             >
                 {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile))}
+                {intersectionWith(explorableAreas, currentlyExplorableAreas, isEqual)
+                    .map(exploreArea => this.renderMallTile(unplacedMallTileIds.slice(-1)[0], exploreArea))}
                 {usedObjects.map((loc, i) => this.renderObject(i, loc, SQUARE_SIZE, 'used'))}
                 {possibleDestinations.map((loc, i) => this.renderObject(i, loc, SQUARE_SIZE, 'destination', () => moves.movePawn(selectedPawn, loc)))}
                 {pawnLocations.map((pawnLocation, pawn) => this.renderObject(pawn, pawnLocation, PAWN_SIZE,
-                    `dot ${COLORS[pawn as Color]}${selectedPawn === pawn ? ' selected' : ''}`,
+                    `dot ${COLORS[pawn as Color]} ${selectedPawn === pawn ? 'selected' : ''}`,
                     () => this.setState({ selectedPawn: selectedPawn === pawn ? undefined : pawn })))}
             </PanZoom>
             <Sidebar {...this.props} />
             {this.renderInfo()}
-            {this.maybeRenderExplore()}
             <Alert {...this.props} />
         </div>;
     }
 
-    renderMallTile = (tileId: string, { row, col, dir }: MallTile) => {
+    renderMallTile = (tileId: string, tilePlacement: TilePlacement) => {
+        const { G: { actionTiles, placedTiles }, moves, playerID } = this.props;
+        const { row, col, dir } = tilePlacement;
+        const canExplore = playerID !== null && actionTiles[playerID].actions.includes(Action.EXPLORE) && !(tileId in placedTiles);
         return <img
             key={tileId}
-            className="object"
+            className={`object ${tileId in placedTiles ? 'placed' : 'unplaced'} ${canExplore ? 'explorable' : ''}`}
             src={`./tiles/tile${tileId}.jpg`}
             alt={`Tile ${tileId}`}
             style={{
@@ -102,6 +107,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                 transform: `rotate(${dir * 90}deg)`,
                 transformOrigin: "center",
             }}
+            onClick={canExplore ? () => moves.finishExplore(tilePlacement) : undefined}
         />;
     }
 
@@ -122,15 +128,20 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
     }
 
     renderInfo() {
-        const { G, moves } = this.props;
-        const { clock: { numMillisLeft, atTime, frozen }, unplacedMallTileIds, vortexSystemEnabled } = G;
+        const { G, moves, playerID } = this.props;
+        const { actionTiles, clock: { numMillisLeft, atTime, frozen }, explorableAreas, unplacedMallTileIds, vortexSystemEnabled } = G;
+        const { currentlyExplorableAreas } = this.state;
+        const canExplore = playerID !== null
+            && actionTiles[playerID].actions.includes(Action.EXPLORE)
+            && explorableAreas.length === 0
+            && currentlyExplorableAreas.length > 0;
         const weapons: Color[] = vortexSystemEnabled
             ? getPawnsAt(G, 'weapon')
             : range(4).filter(i => !getPawnsAt(G, 'exit').includes(i));
         return <div
             className="info"
         >
-            <span className="section text">
+            <span className="section timer">
                 <Clock
                     numMillisLeft={numMillisLeft}
                     atTime={atTime}
@@ -138,7 +149,10 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                     timesUp={() => moves.sync()}
                 />
             </span>
-            <span className="section text">
+            <span
+                className={`section explore ${canExplore ? 'enabled' : 'disabled'}`}
+                onClick={canExplore ? () => moves.startExplore() : undefined}
+            >
                 {`🔍 x${unplacedMallTileIds.length}`}
             </span>
             {weapons.length === 0
@@ -152,19 +166,5 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                     />)}
                 </span>}
         </div>;
-    }
-
-    maybeRenderExplore() {
-        const { moves } = this.props;
-        const { selectedPawn, canExplore } = this.state;
-        if (!canExplore) {
-            return undefined;
-        }
-        return <span
-            className="explore"
-            onClick={() => { moves.explore(selectedPawn) }}
-        >
-            {'🔍'}
-        </span>;
     }
 }

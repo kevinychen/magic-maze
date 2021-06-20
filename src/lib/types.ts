@@ -26,7 +26,14 @@ export interface UnplacedMallTile {
     escalators: { startRow: number, startCol: number, endRow: number, endCol: number }[];
 }
 
-export type MallTile = UnplacedMallTile & { row: number, col: number, dir: number };
+export interface TilePlacement {
+
+    row: number;
+    col: number;
+    dir: number;
+}
+
+export type MallTile = UnplacedMallTile & TilePlacement;
 
 export interface ActionTile {
 
@@ -40,6 +47,7 @@ export interface GameState {
     actionTiles: { [playerID: string]: ActionTile };
     clock: { numMillisLeft: number, atTime: number, frozen: boolean };
     doSomethingPawn?: { playerID: string, byPlayerID: string, atTime: number };
+    explorableAreas: TilePlacement[];
     pawnLocations: Location[];
     placedTiles: { [tileId: string]: MallTile };
     unplacedMallTileIds: string[];
