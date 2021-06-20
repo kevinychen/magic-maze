@@ -1,5 +1,5 @@
 import { Ctx } from "boardgame.io";
-import { isEqual, range, some } from 'lodash';
+import { intersectionWith, isEqual, range, some } from 'lodash';
 import { ACTION_TILES, MALL_TILES } from "./data";
 import { placeTile } from "./tiles";
 import { Action, Color, GameState, Location, TilePlacement, Wall } from "./types";
@@ -59,36 +59,38 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action
     return destination;
 }
 
-export function getPossibleDestinations(G: GameState, playerID: string, pawn: Color): Location[] {
+export function getPossibleDestinations(G: GameState, playerID: string | null | undefined, pawn: Color): Location[] {
     const { actionTiles, pawnLocations, placedTiles, vortexSystemEnabled } = G;
-    const actions = actionTiles[playerID].actions;
     const possibleDestinations: Location[] = [];
-    for (const action of actions) {
-        let location = pawnLocations[pawn];
-        if (action < Action.ESCALATOR) {
-            while (true) {
-                const newLocation = makeMove(G, pawn, location, action);
-                if (newLocation === undefined) {
-                    break;
+    if (playerID !== undefined && playerID !== null) {
+        const actions = actionTiles[playerID].actions;
+        for (const action of actions) {
+            let location = pawnLocations[pawn];
+            if (action < Action.ESCALATOR) {
+                while (true) {
+                    const newLocation = makeMove(G, pawn, location, action);
+                    if (newLocation === undefined) {
+                        break;
+                    }
+                    possibleDestinations.push(newLocation);
+                    location = newLocation;
                 }
-                possibleDestinations.push(newLocation);
-                location = newLocation;
-            }
-        } else if (action === Action.ESCALATOR) {
-            const newLocation = makeMove(G, pawn, location, action);
-            if (newLocation !== undefined) {
-                possibleDestinations.push(newLocation);
-            }
-        } else if (action === Action.VORTEX && vortexSystemEnabled) {
-            for (const tileId in placedTiles) {
-                const { squares } = placedTiles[tileId];
-                for (let localRow = 0; localRow < 4; localRow++) {
-                    for (let localCol = 0; localCol < 4; localCol++) {
-                        const destination = { tileId, localRow, localCol };
-                        if (squares[localRow][localCol].vortex === pawn
-                            && !some(pawnLocations, destination)
-                            && !some(possibleDestinations, destination)) {
-                            possibleDestinations.push(destination);
+            } else if (action === Action.ESCALATOR) {
+                const newLocation = makeMove(G, pawn, location, action);
+                if (newLocation !== undefined) {
+                    possibleDestinations.push(newLocation);
+                }
+            } else if (action === Action.VORTEX && vortexSystemEnabled) {
+                for (const tileId in placedTiles) {
+                    const { squares } = placedTiles[tileId];
+                    for (let localRow = 0; localRow < 4; localRow++) {
+                        for (let localCol = 0; localCol < 4; localCol++) {
+                            const destination = { tileId, localRow, localCol };
+                            if (squares[localRow][localCol].vortex === pawn
+                                && !some(pawnLocations, destination)
+                                && !some(possibleDestinations, destination)) {
+                                possibleDestinations.push(destination);
+                            }
                         }
                     }
                 }
@@ -119,6 +121,10 @@ export function getExplorableAreas(G: GameState): TilePlacement[] {
         }
     }
     return explorableAreas;
+}
+
+export function canExplore({ actionTiles }: GameState, playerID: string | null | undefined): boolean {
+    return playerID !== undefined && playerID !== null && actionTiles[playerID].actions.includes(Action.EXPLORE);
 }
 
 export function getPawnsAt(G: GameState, locationType: 'weapon' | 'exit'): Color[] {
@@ -161,9 +167,6 @@ export const Game = {
         movePawn: (G: GameState, ctx: Ctx, pawn: Color, newLocation: Location) => {
             const { clock: { numMillisLeft, atTime, frozen}, explorableAreas, pawnLocations, placedTiles, usedObjects } = G;
             const { playerID } = ctx;
-            if (playerID === undefined) {
-                return INVALID_MOVE;
-            }
             if (!some(getPossibleDestinations(G, playerID, pawn), newLocation)) {
                 return INVALID_MOVE;
             }
@@ -191,12 +194,9 @@ export const Game = {
             }
         },
         startExplore: (G: GameState, ctx: Ctx) => {
-            const { actionTiles, explorableAreas } = G;
+            const { explorableAreas } = G;
             const { playerID } = ctx;
-            if (playerID === undefined) {
-                return INVALID_MOVE;
-            }
-            if (!actionTiles[playerID].actions.includes(Action.EXPLORE)) {
+            if (!canExplore(G, playerID)) {
                 return INVALID_MOVE;
             }
             if (explorableAreas.length > 0) {
@@ -209,18 +209,12 @@ export const Game = {
             G.explorableAreas = newExplorableAreas;
         },
         finishExplore: (G: GameState, ctx: Ctx, tilePlacement: TilePlacement) => {
-            const { actionTiles, explorableAreas, placedTiles, unplacedMallTileIds } = G;
+            const { explorableAreas, placedTiles, unplacedMallTileIds } = G;
             const { playerID } = ctx;
-            if (playerID === undefined) {
+            if (!canExplore(G, playerID)) {
                 return INVALID_MOVE;
             }
-            if (!actionTiles[playerID].actions.includes(Action.EXPLORE)) {
-                return INVALID_MOVE;
-            }
-            if (!some(explorableAreas, tilePlacement)) {
-                return INVALID_MOVE;
-            }
-            if (!some(getExplorableAreas(G), tilePlacement)) {
+            if (!some(intersectionWith(explorableAreas, getExplorableAreas(G), isEqual), tilePlacement)) {
                 return INVALID_MOVE;
             }
             const newTileId = unplacedMallTileIds.pop()!;
