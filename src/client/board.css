@@ -49,22 +49,6 @@ body {
     opacity: 0.7;
 }
 
-.game .yellow {
-    background-color: yellow;
-}
-
-.game .purple {
-    background-color: purple;
-}
-
-.game .green {
-    background-color: green;
-}
-
-.game .orange {
-    background-color: orange;
-}
-
 .game .pawn {
     border-radius: 50%;
     box-shadow: #8675af 1px 1px 1px,
@@ -87,18 +71,13 @@ body {
     opacity: 50%;
 }
 
-.game .used {
-    background-color: orange;
-    opacity: 50%;
-}
-
-.board .info {
+.info {
     position: fixed;
     left: calc(var(--sidebar-width) + 10px);
     top: 10px;
 }
 
-.board .info .section {
+.info .section {
     border: 3px solid #8675af;
     border-radius: 5px;
     background-color: #fae6cd;
@@ -106,26 +85,26 @@ body {
     font-size: 32px;
 }
 
-.board .info .section.timer {
+.info .section.timer {
     padding: 0px 5px;
 }
 
-.board .info .section.explore {
+.info .section.explore {
     padding: 0px 5px;
     cursor: pointer;
 }
 
-.board .info .section.explore.disabled:hover {
+.info .section.explore.disabled:hover {
     background-color: #ff8888;
     opacity: 0.7;
     cursor: not-allowed;
 }
 
-.board .info .section.explore.enabled:hover {
+.info .section.explore.enabled:hover {
     background-color: lightgreen;
 }
 
-.board .info .weapon {
+.info .weapon {
     height: 39px;
     margin-bottom: -7.5px;
 }

@@ -1,6 +1,6 @@
 import { BoardProps } from 'boardgame.io/react';
 import { intersectionWith, isEqual, range } from 'lodash';
-import React, { Key } from 'react';
+import React from 'react';
 import { PanZoom } from 'react-easy-panzoom'
 import { canExplore, getExplorableAreas, getPawnsAt, getPossibleDestinations } from '../lib/game';
 import { Color, GameState, Location, TilePlacement } from '../lib/types';
@@ -75,9 +75,25 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                 {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile, true))}
                 {intersectionWith(explorableAreas, currentlyExplorableAreas, isEqual)
                     .map(exploreArea => this.renderMallTile(unplacedMallTileIds.slice(-1)[0], exploreArea, false))}
-                {usedObjects.map((loc, i) => this.renderObject(i, loc, SQUARE_SIZE, 'used'))}
-                {possibleDestinations.map((loc, i) => this.renderObject(i, loc, SQUARE_SIZE, 'destination', () => moves.movePawn(selectedPawn, loc)))}
-                {pawnLocations.map((pawnLocation, pawn) => this.renderPawn(pawn, pawnLocation))}
+                {usedObjects.map((loc, i) => <img
+                    key={i}
+                    className="object"
+                    style={this.getPositionStyle(loc, SQUARE_SIZE)}
+                    src="./used.png"
+                    alt="used"
+                />)}
+                {possibleDestinations.map((loc, i) => <span
+                    key={i}
+                    className="object destination"
+                    style={this.getPositionStyle(loc, SQUARE_SIZE)}
+                    onClick={() => moves.movePawn(selectedPawn, loc)}
+                />)}
+                {pawnLocations.map((pawnLocation, pawn) => <Pawn
+                    color={COLORS[pawn as Color]}
+                    selected={selectedPawn === pawn}
+                    onClick={() => this.setState({ selectedPawn: selectedPawn === pawn ? undefined : pawn })}
+                    {...this.getPositionStyle(pawnLocation, PAWN_SIZE)}
+                />)}
             </PanZoom>
             <Sidebar {...this.props} />
             {this.renderInfo()}
@@ -101,32 +117,6 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                 transformOrigin: "center",
             }}
             onClick={canFinishExplore ? () => moves.finishExplore(tilePlacement) : undefined}
-        />;
-    }
-
-    renderPawn(pawn: Color, location: Location) {
-        const { selectedPawn } = this.state;
-        return <Pawn
-            color={COLORS[pawn as Color]}
-            size={PAWN_SIZE}
-            selected={selectedPawn === pawn}
-            onClick={() => this.setState({ selectedPawn: selectedPawn === pawn ? undefined : pawn })}
-            {...this.getPosition(location, PAWN_SIZE)}
-        />;
-    }
-
-    renderObject(key: Key, location: Location, size: number, className: string, onClick?: (() => void)) {
-        const { top, left } = this.getPosition(location, size);
-        return <span
-            key={key}
-            className={`object ${className}`}
-            style={{
-                width: size,
-                height: size,
-                top: `${top}px`,
-                left: `${left}px`,
-            }}
-            onClick={onClick}
         />;
     }
 
@@ -168,10 +158,12 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
         </div>;
     }
 
-    private getPosition({ tileId, localRow, localCol }: Location, size: number) {
+    private getPositionStyle({ tileId, localRow, localCol }: Location, size: number) {
         const { G: { placedTiles } } = this.props;
         const { row, col } = placedTiles[tileId];
         return {
+            width: size,
+            height: size,
             top: row * MALL_TILE_SIZE + (col + localRow) * SQUARE_SIZE + (MALL_TILE_SIZE - 3 * SQUARE_SIZE - size) / 2,
             left: col * MALL_TILE_SIZE + (-row + localCol) * SQUARE_SIZE + (MALL_TILE_SIZE - 3 * SQUARE_SIZE - size) / 2,
         };

@@ -3,21 +3,22 @@ import { animated, useSpring } from 'react-spring';
 interface Props {
 
     color: string;
+    width: number;
+    height: number;
     top: number;
     left: number;
-    size: number;
     selected: boolean;
     onClick?: () => void;
 }
 
-export function Pawn({ color, top, left, size, selected, onClick }: Props) {
+export function Pawn({ color, width, height, top, left, selected, onClick }: Props) {
     const { top: animatedTop, left: animatedLeft } = useSpring({ top, left });
     return <animated.img
         key={color}
         className={`object pawn ${selected ? 'selected' : ''}`}
         style={{
-            width: size,
-            height: size,
+            width,
+            height,
             top: animatedTop,
             left: animatedLeft,
         }}
