@@ -1,6 +1,6 @@
 import { Ctx } from "boardgame.io";
 import { intersectionWith, isEqual, range, some } from 'lodash';
-import { ACTION_TILES, MALL_TILES } from "./data";
+import { ACTION_TILES, MALL_TILES, SCENARIOS } from "./data";
 import { placeTile } from "./tiles";
 import { Action, Color, GameState, Location, TilePlacement, Wall } from "./types";
 
@@ -144,16 +144,17 @@ export const Game = {
 
     setup: (ctx: Ctx): GameState => {
         const { numPlayers, random } = ctx;
-        const startTileId = '1a';
+        const { startTileId, topMallTileIds, remainingMallTileIds, ...gameConfig } = SCENARIOS[5]; // TODO
         return {
             actionTiles: Object.fromEntries(random!.Shuffle(ACTION_TILES.filter(tile => tile.numPlayers.includes(numPlayers)))
                 .map((tile, i) => [i, tile])),
             clock: { numMillisLeft: TIMER_MILLIS, atTime: Date.now(), frozen: true },
+            config: gameConfig,
             explorableAreas: [],
             pawnLocations: random!.Shuffle([[1, 1], [1, 2], [2, 1], [2, 2]])
                 .map(([localRow, localCol]) => ({ tileId: startTileId, localRow, localCol })),
             placedTiles: { [startTileId]: placeTile(MALL_TILES[startTileId], { row: 0, col: 0, dir: 0 }) },
-            unplacedMallTileIds: random!.Shuffle(range(15).filter(i => i >= 2).map(i => String(i))),
+            unplacedMallTileIds: [...random!.Shuffle(remainingMallTileIds), ...(topMallTileIds || [])],
             usedObjects: [],
             vortexSystemEnabled: true,
         };

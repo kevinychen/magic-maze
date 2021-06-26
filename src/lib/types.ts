@@ -42,10 +42,29 @@ export interface ActionTile {
     actions: Action[];
 }
 
+export interface GameConfig {
+
+    allUsePurpleExit?: boolean;
+    canAlwaysTalk?: boolean;
+    disableGreenExploreRule?: boolean;
+    divination?: boolean;
+    followTheLeader?: boolean;
+    groupsForbidden?: boolean;
+    mageTileOnTop?: boolean;
+    multdimensionalMall?: boolean;
+    noCommunication?: boolean;
+    noDoSomethingPawn?: boolean;
+    rearrangementMode?: boolean;
+    skipPassingActions?: boolean;
+    trickTheGuards?: boolean;
+    vortexOutOfService?: boolean;
+}
+
 export interface GameState {
 
     actionTiles: { [playerID: string]: ActionTile };
     clock: { numMillisLeft: number, atTime: number, frozen: boolean };
+    config: GameConfig;
     doSomethingPawn?: { playerID: string, byPlayerID: string, atTime: number };
     explorableAreas: TilePlacement[];
     pawnLocations: Location[];
