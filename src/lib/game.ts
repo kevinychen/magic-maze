@@ -185,14 +185,16 @@ export const Game = {
     moves: {
         movePawn: (G: GameState, ctx: Ctx, pawn: Color, newLocation: Location) => {
             const {
+                actionTiles,
                 clock: { numMillisLeft, atTime, frozen},
+                config: { skipPassingActions },
                 explorableAreas,
                 numCrystalBallUses,
                 pawnLocations,
                 placedTiles,
                 usedObjects,
             } = G;
-            const { playerID } = ctx;
+            const { numPlayers, playerID, playOrder } = ctx;
             if (!some(getPossibleDestinations(G, playerID, pawn), newLocation)) {
                 return INVALID_MOVE;
             }
@@ -217,10 +219,14 @@ export const Game = {
             }
             const { tileId, localRow, localCol } = newLocation;
             const { squares } = placedTiles[tileId];
+            // check if we flip the timer
             if (squares[localRow][localCol].timer && !some(usedObjects, newLocation)) {
                 const actualNumMillisLeft = numMillisLeft - (now - atTime);
                 usedObjects.push(newLocation);
                 G.clock = { numMillisLeft: TIMER_MILLIS - actualNumMillisLeft, atTime: now, frozen: false };
+                if (!skipPassingActions) {
+                    G.actionTiles = Object.fromEntries(range(numPlayers).map(i => [(i + 1) % numPlayers, actionTiles[i]]));
+                }
             }
 
             if (range(4).every(i => getSquare(G, i).weapon === i)) {

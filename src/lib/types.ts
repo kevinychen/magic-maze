@@ -52,7 +52,6 @@ export interface GameConfig {
     divination?: boolean;
     followTheLeader?: boolean;
     groupsForbidden?: boolean;
-    mageTileOnTop?: boolean;
     multdimensionalMall?: boolean;
     noCommunication?: boolean;
     noDoSomethingPawn?: boolean;
