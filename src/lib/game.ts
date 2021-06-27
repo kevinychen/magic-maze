@@ -2,12 +2,19 @@ import { Ctx } from "boardgame.io";
 import { intersectionWith, isEqual, range, some } from 'lodash';
 import { ACTION_TILES, MALL_TILES, SCENARIOS } from "./data";
 import { placeTile } from "./tiles";
-import { Action, Color, GameState, Location, TilePlacement, Wall } from "./types";
+import { Action, Color, GameState, Location, Square, TilePlacement, Wall } from "./types";
 
 const DIRS = [{ drow: -1, dcol: 0 }, { drow: 0, dcol: 1 }, { drow: 1, dcol: 0 }, { drow: 0, dcol: -1 }];
 const EXPLORE_LOCATIONS = [{ row: 0, col: 2 }, { row: 2, col: 3 }, { row: 3, col: 1 }, { row: 1, col: 0 }];
 const INVALID_MOVE = "INVALID_MOVE";
 const TIMER_MILLIS = 180000;
+const MAX_CRYSTAL_BALL_USES = 2;
+
+function getSquare(G: GameState, pawn: Color): Square {
+    const { pawnLocations, placedTiles } = G;
+    const { tileId, localRow, localCol } = pawnLocations[pawn];
+    return placedTiles[tileId].squares[localRow][localCol];
+}
 
 function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action): Location | undefined {
     const { pawnLocations, placedTiles } = G;
@@ -101,7 +108,7 @@ export function getPossibleDestinations(G: GameState, playerID: string | null | 
 }
 
 export function getExplorableAreas(G: GameState): TilePlacement[] {
-    const { pawnLocations, placedTiles, unplacedMallTileIds } = G;
+    const { numCrystalBallUses, pawnLocations, placedTiles, unplacedMallTileIds } = G;
     const explorableAreas: TilePlacement[] = [];
     if (unplacedMallTileIds.length > 0) {
         const [newTileId] = unplacedMallTileIds.slice(-1);
@@ -113,7 +120,7 @@ export function getExplorableAreas(G: GameState): TilePlacement[] {
                     continue;
                 }
                 const { row: localRow, col: localCol } = EXPLORE_LOCATIONS[dir];
-                if (isEqual(pawnLocations[explorePawn], { tileId, localRow, localCol })
+                if ((isEqual(pawnLocations[explorePawn], { tileId, localRow, localCol }) || numCrystalBallUses >= 1)
                     && !Object.values(placedTiles).some(tile => tile.row === row + drow && tile.col === col + dcol)) {
                     explorableAreas.push({ row: row + drow, col: col + dcol, dir: (dir - MALL_TILES[newTileId].entranceDir! + 6) % 4 });
                 }
@@ -128,13 +135,7 @@ export function canExplore({ actionTiles }: GameState, playerID: string | null |
 }
 
 export function getPawnsAt(G: GameState, locationType: 'weapon' | 'exit'): Color[] {
-    const { pawnLocations, placedTiles } = G;
-    return range(4)
-        .filter(i => {
-            const { tileId, localRow, localCol } = pawnLocations[i];
-            const { squares } = placedTiles[tileId];
-            return squares[localRow][localCol][locationType] === i;
-        });
+    return range(4).filter(i => getSquare(G, i)[locationType] === i);
 }
 
 export const Title = "Magic Maze";
@@ -151,6 +152,7 @@ export const Game = {
             clock: { numMillisLeft: TIMER_MILLIS, atTime: Date.now(), frozen: true },
             config: gameConfig,
             explorableAreas: [],
+            numCrystalBallUses: 0,
             pawnLocations: random!.Shuffle([[1, 1], [1, 2], [2, 1], [2, 2]])
                 .map(([localRow, localCol]) => ({ tileId: startTileId, localRow, localCol })),
             placedTiles: { [startTileId]: placeTile(MALL_TILES[startTileId], { row: 0, col: 0, dir: 0 }) },
@@ -166,11 +168,26 @@ export const Game = {
 
     moves: {
         movePawn: (G: GameState, ctx: Ctx, pawn: Color, newLocation: Location) => {
-            const { clock: { numMillisLeft, atTime, frozen}, explorableAreas, pawnLocations, placedTiles, usedObjects } = G;
+            const {
+                clock: { numMillisLeft, atTime, frozen},
+                explorableAreas,
+                numCrystalBallUses,
+                pawnLocations,
+                placedTiles,
+                usedObjects,
+            } = G;
             const { playerID } = ctx;
             if (!some(getPossibleDestinations(G, playerID, pawn), newLocation)) {
                 return INVALID_MOVE;
             }
+
+            if (getSquare(G, pawn).crystal === pawn && !some(usedObjects, pawnLocations[pawn])) {
+                if (numCrystalBallUses < MAX_CRYSTAL_BALL_USES) {
+                    usedObjects.push(pawnLocations[pawn]);
+                }
+                G.numCrystalBallUses = 0;
+            }
+
             pawnLocations[pawn] = newLocation;
 
             // Can't move pawn away if in the middle of exploring
@@ -193,6 +210,10 @@ export const Game = {
             if (getPawnsAt(G, 'weapon').length === 4) {
                 G.vortexSystemEnabled = false;
             }
+
+            if (getSquare(G, pawn).crystal === pawn && !some(usedObjects, pawnLocations[pawn])) {
+                G.numCrystalBallUses = MAX_CRYSTAL_BALL_USES;
+            }
         },
         startExplore: (G: GameState, ctx: Ctx) => {
             const { explorableAreas } = G;
@@ -210,7 +231,7 @@ export const Game = {
             G.explorableAreas = newExplorableAreas;
         },
         finishExplore: (G: GameState, ctx: Ctx, tilePlacement: TilePlacement) => {
-            const { explorableAreas, placedTiles, unplacedMallTileIds } = G;
+            const { explorableAreas, numCrystalBallUses, placedTiles, unplacedMallTileIds } = G;
             const { playerID } = ctx;
             if (!canExplore(G, playerID)) {
                 return INVALID_MOVE;
@@ -221,6 +242,9 @@ export const Game = {
             const newTileId = unplacedMallTileIds.pop()!;
             placedTiles[newTileId] = placeTile(MALL_TILES[newTileId], tilePlacement);
             G.explorableAreas = [];
+            if (numCrystalBallUses >= 1) {
+                G.numCrystalBallUses--;
+            }
         },
         sync: {
             move: (G: GameState) => {

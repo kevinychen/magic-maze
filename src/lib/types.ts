@@ -16,6 +16,8 @@ export interface Square {
     timer: boolean;
     exit?: Color;
     weapon?: Color;
+    crystal?: Color;
+    camera?: Color;
 }
 
 export interface UnplacedMallTile {
@@ -65,6 +67,7 @@ export interface GameState {
     actionTiles: { [playerID: string]: ActionTile };
     clock: { numMillisLeft: number, atTime: number, frozen: boolean };
     config: GameConfig;
+    numCrystalBallUses: number;
     doSomethingPawn?: { playerID: string, byPlayerID: string, atTime: number };
     explorableAreas: TilePlacement[];
     pawnLocations: Location[];

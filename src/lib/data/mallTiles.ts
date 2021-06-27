@@ -438,6 +438,10 @@ function parse(mallTile: HumanReadableMallTile): UnplacedMallTile {
                 squares[row][col].exit = COLORS.indexOf(parts[0]);
             } else if (parts[1] === 'weapon') {
                 squares[row][col].weapon = COLORS.indexOf(parts[0]);
+            } else if (parts[1] === 'crystal') {
+                squares[row][col].crystal = COLORS.indexOf(parts[0]);
+            } else if (parts[1] === 'camera') {
+                squares[row][col].camera = COLORS.indexOf(parts[0]);
             } else if (parts[0] === 'timer') {
                 squares[row][col].timer = true;
             }
