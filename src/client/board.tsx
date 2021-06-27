@@ -2,7 +2,7 @@ import { BoardProps } from 'boardgame.io/react';
 import { intersectionWith, isEqual, range } from 'lodash';
 import React from 'react';
 import { PanZoom } from 'react-easy-panzoom'
-import { canExplore, getExplorableAreas, getPawnsAt, getPossibleDestinations } from '../lib/game';
+import { canExplore, getExplorableAreas, getPossibleDestinations, getSquare } from '../lib/game';
 import { Color, GameState, Location, TilePlacement } from '../lib/types';
 import { Alert } from './alert';
 import { Clock } from './clock';
@@ -126,8 +126,8 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
         const { currentlyExplorableAreas } = this.state;
         const canStartExplore = canExplore(G, playerID) && explorableAreas.length === 0 && currentlyExplorableAreas.length > 0;
         const weapons: Color[] = vortexSystemEnabled
-            ? getPawnsAt(G, 'weapon')
-            : range(4).filter(i => !getPawnsAt(G, 'exit').includes(i));
+            ? range(4).filter(i => getSquare(G, i).weapon === i)
+            : range(4).filter(i => getSquare(G, i).exit !== i);
         return <div
             className="info"
         >

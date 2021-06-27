@@ -10,10 +10,16 @@ const INVALID_MOVE = "INVALID_MOVE";
 const TIMER_MILLIS = 180000;
 const MAX_CRYSTAL_BALL_USES = 2;
 
-function getSquare(G: GameState, pawn: Color): Square {
+export function getSquare(G: GameState, pawn: Color): Square {
     const { pawnLocations, placedTiles } = G;
     const { tileId, localRow, localCol } = pawnLocations[pawn];
     return placedTiles[tileId].squares[localRow][localCol];
+}
+
+export function atExit(G: GameState, pawn: Color, square?: Square): boolean {
+    const { config: { allUsePurpleExit } } = G;
+    const { exit } = square === undefined ? getSquare(G, pawn) : square;
+    return exit === pawn || (exit !== undefined && allUsePurpleExit === true);
 }
 
 function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action): Location | undefined {
@@ -23,9 +29,14 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action
 
     if (dir === Action.ESCALATOR) {
         const escalator = escalators.find(({ startRow, startCol }) => startRow === localRow && startCol === localCol);
-        return escalator === undefined
-            ? undefined
-            : { tileId, localRow: escalator.endRow, localCol: escalator.endCol };
+        if (escalator === undefined) {
+            return undefined;
+        }
+        const destination = { tileId, localRow: escalator.endRow, localCol: escalator.endCol };
+        if (some(pawnLocations, destination)) {
+            return undefined;
+        }
+        return destination;
     }
 
     // Check if currently at an exit to a neighboring tile
@@ -57,9 +68,14 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action
         return undefined;
     }
 
+    // Can't move if already at exit
+    if (atExit(G, pawn)) {
+        return undefined;
+    }
+
     // Check for another pawn
     const destination = { tileId: tileId, localRow: localRow + drow, localCol: localCol + dcol };
-    if (some(pawnLocations, destination)) {
+    if (some(pawnLocations, destination) && !atExit(G, pawn, squares[localRow + drow][localCol + dcol])) {
         return undefined;
     }
 
@@ -145,7 +161,7 @@ export const Game = {
 
     setup: (ctx: Ctx): GameState => {
         const { numPlayers, random } = ctx;
-        const { startTileId, topMallTileIds, remainingMallTileIds, ...gameConfig } = SCENARIOS[5]; // TODO
+        const { startTileId, topMallTileIds, remainingMallTileIds, ...gameConfig } = SCENARIOS[1]; // TODO
         return {
             actionTiles: Object.fromEntries(random!.Shuffle(ACTION_TILES.filter(tile => tile.numPlayers.includes(numPlayers)))
                 .map((tile, i) => [i, tile])),
@@ -207,7 +223,7 @@ export const Game = {
                 G.clock = { numMillisLeft: TIMER_MILLIS - actualNumMillisLeft, atTime: now, frozen: false };
             }
 
-            if (getPawnsAt(G, 'weapon').length === 4) {
+            if (range(4).every(i => getSquare(G, i).weapon === i)) {
                 G.vortexSystemEnabled = false;
             }
 
@@ -273,6 +289,6 @@ export const Game = {
 
     endIf: (G: GameState) => {
         const { clock: { numMillisLeft }, vortexSystemEnabled } = G;
-        return numMillisLeft <= 0 || (!vortexSystemEnabled && getPawnsAt(G, 'exit').length === 4);
+        return numMillisLeft <= 0 || (!vortexSystemEnabled && range(4).every(i => atExit(G, i)));
     },
 };
