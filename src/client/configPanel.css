@@ -1,0 +1,51 @@
+.config-panel {
+    position: absolute;
+    width: 500px;
+    top: 100px;
+    left: calc(50% - 250px);
+    font-size: 20px;
+    background-color: lightgray;
+    border: 3px solid black;
+    border-radius: 5px;
+    padding: 5px;
+    box-shadow: #8675af 5px 5px;
+    -webkit-text-stroke: 1px #3c1049;
+}
+
+.config-panel .left-arrow {
+    float: left;
+    transform: rotate(270deg);
+}
+
+.config-panel .right-arrow {
+    float: right;
+    transform: rotate(90deg);
+}
+
+.config-panel .scenario {
+    font-size: 28px;
+    text-align: center;
+    margin-top: 2px;
+}
+
+.config-panel .field {
+    margin-bottom: 5px;
+}
+
+.config-panel .toggleable {
+    border: 1px solid #8675af;
+    border-radius: 5px;
+    background-color: #fae6cd;
+    padding: 0px 5px;
+}
+
+.config-panel .toggleable:hover {
+    cursor: pointer;
+    background-color: lightgreen;
+}
+
+.config-panel .start {
+    display: block;
+    margin: 0 auto;
+    font-size: 18px;
+}

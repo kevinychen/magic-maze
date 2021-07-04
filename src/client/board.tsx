@@ -9,6 +9,7 @@ import { Clock } from './clock';
 import { Pawn } from './pawn';
 import { Sidebar } from './sidebar';
 import './board.css';
+import { ConfigPanel } from './configPanel';
 
 const MALL_TILE_SIZE = 555;
 const SQUARE_SIZE = 118;
@@ -57,48 +58,54 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
     }
 
     render() {
-        const { G: { explorableAreas, pawnLocations, placedTiles, unplacedMallTileIds, usedObjects }, moves } = this.props;
-        const { selectedPawn, possibleDestinations, currentlyExplorableAreas } = this.state;
+        const { ctx: { phase }} = this.props;
         return <div className="board">
-            <PanZoom
-                className="game"
-                disableDoubleClickZoom={true}
-                keyMapping={{
-                    '87': { x: 0, y: 5, z: 0 },
-                    '83': { x: 0, y: -5, z: 0 },
-                    '65': { x: 5, y: 0, z: 0 },
-                    '68': { x: -5, y: 0, z: 0 },
-                }}
-                minZoom={0.1}
-                maxZoom={5}
-            >
-                {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile, true))}
-                {intersectionWith(explorableAreas, currentlyExplorableAreas, isEqual)
-                    .map(exploreArea => this.renderMallTile(unplacedMallTileIds.slice(-1)[0], exploreArea, false))}
-                {usedObjects.map((loc, i) => <img
-                    key={i}
-                    className="object"
-                    style={this.getPositionStyle(loc, SQUARE_SIZE)}
-                    src="./used.png"
-                    alt="used"
-                />)}
-                {possibleDestinations.map((loc, i) => <span
-                    key={i}
-                    className="object destination"
-                    style={this.getPositionStyle(loc, SQUARE_SIZE)}
-                    onClick={() => moves.movePawn(selectedPawn, loc)}
-                />)}
-                {pawnLocations.map((pawnLocation, pawn) => <Pawn
-                    color={COLORS[pawn as Color]}
-                    selected={selectedPawn === pawn}
-                    onClick={() => this.setState({ selectedPawn: selectedPawn === pawn ? undefined : pawn })}
-                    {...this.getPositionStyle(pawnLocation, PAWN_SIZE)}
-                />)}
-            </PanZoom>
+            {this.renderGame()}
+            {phase === 'setConfig' ? <ConfigPanel {...this.props} /> : undefined}
             <Sidebar {...this.props} />
             {this.renderInfo()}
             <Alert {...this.props} />
         </div>;
+    }
+
+    renderGame() {
+        const { G: { explorableAreas, pawnLocations, placedTiles, unplacedMallTileIds, usedObjects }, moves } = this.props;
+        const { selectedPawn, possibleDestinations, currentlyExplorableAreas } = this.state;
+        return <PanZoom
+            className="game"
+            disableDoubleClickZoom={true}
+            keyMapping={{
+                '87': { x: 0, y: 5, z: 0 },
+                '83': { x: 0, y: -5, z: 0 },
+                '65': { x: 5, y: 0, z: 0 },
+                '68': { x: -5, y: 0, z: 0 },
+            }}
+            minZoom={0.1}
+            maxZoom={5}
+        >
+            {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile, true))}
+            {intersectionWith(explorableAreas, currentlyExplorableAreas, isEqual)
+                .map(exploreArea => this.renderMallTile(unplacedMallTileIds.slice(-1)[0], exploreArea, false))}
+            {usedObjects.map((loc, i) => <img
+                key={i}
+                className="object"
+                style={this.getPositionStyle(loc, SQUARE_SIZE)}
+                src="./used.png"
+                alt="used"
+            />)}
+            {possibleDestinations.map((loc, i) => <span
+                key={i}
+                className="object destination"
+                style={this.getPositionStyle(loc, SQUARE_SIZE)}
+                onClick={() => moves.movePawn(selectedPawn, loc)}
+            />)}
+            {pawnLocations.map((pawnLocation, pawn) => <Pawn
+                color={COLORS[pawn as Color]}
+                selected={selectedPawn === pawn}
+                onClick={() => this.setState({ selectedPawn: selectedPawn === pawn ? undefined : pawn })}
+                {...this.getPositionStyle(pawnLocation, PAWN_SIZE)}
+            />)}
+        </PanZoom>;
     }
 
     renderMallTile = (tileId: string, tilePlacement: TilePlacement, placed: boolean) => {

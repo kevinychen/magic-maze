@@ -46,6 +46,12 @@ export interface ActionTile {
 
 export interface GameConfig {
 
+    scenario: number;
+
+    startTileId: string;
+    topMallTileIds?: string[];
+    remainingMallTileIds: string[];
+
     allUsePurpleExit?: boolean;
     canAlwaysTalk?: boolean;
     disableGreenExploreRule?: boolean;

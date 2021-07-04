@@ -2,13 +2,32 @@ import { Ctx } from "boardgame.io";
 import { intersectionWith, isEqual, range, some } from 'lodash';
 import { ACTION_TILES, MALL_TILES, SCENARIOS } from "./data";
 import { placeTile } from "./tiles";
-import { Action, Color, GameState, Location, Square, TilePlacement, Wall } from "./types";
+import { Action, Color, GameConfig, GameState, Location, Square, TilePlacement, Wall } from "./types";
 
 const DIRS = [{ drow: -1, dcol: 0 }, { drow: 0, dcol: 1 }, { drow: 1, dcol: 0 }, { drow: 0, dcol: -1 }];
 const EXPLORE_LOCATIONS = [{ row: 0, col: 2 }, { row: 2, col: 3 }, { row: 3, col: 1 }, { row: 1, col: 0 }];
 const INVALID_MOVE = "INVALID_MOVE";
 const TIMER_MILLIS = 180000;
 const MAX_CRYSTAL_BALL_USES = 2;
+
+function setup(ctx: Ctx, config: GameConfig): GameState {
+    const { numPlayers, random } = ctx;
+    const { startTileId, topMallTileIds, remainingMallTileIds } = config;
+    return {
+        actionTiles: Object.fromEntries(random!.Shuffle(ACTION_TILES.filter(tile => tile.numPlayers.includes(numPlayers)))
+            .map((tile, i) => [i, tile])),
+        clock: { numMillisLeft: TIMER_MILLIS, atTime: Date.now(), frozen: true },
+        config,
+        explorableAreas: [],
+        numCrystalBallUses: 0,
+        pawnLocations: random!.Shuffle([[1, 1], [1, 2], [2, 1], [2, 2]])
+            .map(([localRow, localCol]) => ({ tileId: startTileId, localRow, localCol })),
+        placedTiles: { [startTileId]: placeTile(MALL_TILES[startTileId], { row: 0, col: 0, dir: 0 }) },
+        unplacedMallTileIds: [...random!.Shuffle(remainingMallTileIds), ...(topMallTileIds || [])],
+        usedObjects: [],
+        vortexSystemEnabled: true,
+    };
+}
 
 export function getSquare(G: GameState, pawn: Color): Square {
     const { pawnLocations, placedTiles } = G;
@@ -17,8 +36,9 @@ export function getSquare(G: GameState, pawn: Color): Square {
 }
 
 export function atExit(G: GameState, pawn: Color, square?: Square): boolean {
-    const { config: { allUsePurpleExit } } = G;
+    const { config: { remainingMallTileIds } } = G;
     const { exit } = square === undefined ? getSquare(G, pawn) : square;
+    const allUsePurpleExit = remainingMallTileIds.every(tileId => parseInt(tileId) <= 9);
     return exit === pawn || (exit !== undefined && allUsePurpleExit === true);
 }
 
@@ -150,36 +170,50 @@ export function canExplore({ actionTiles }: GameState, playerID: string | null |
     return playerID !== undefined && playerID !== null && actionTiles[playerID].actions.includes(Action.EXPLORE);
 }
 
-export function getPawnsAt(G: GameState, locationType: 'weapon' | 'exit'): Color[] {
-    return range(4).filter(i => getSquare(G, i)[locationType] === i);
-}
-
 export const Title = "Magic Maze";
 
 export const Game = {
     name: "magic-maze",
 
-    setup: (ctx: Ctx): GameState => {
-        const { numPlayers, random } = ctx;
-        const { startTileId, topMallTileIds, remainingMallTileIds, ...gameConfig } = SCENARIOS[1]; // TODO
-        return {
-            actionTiles: Object.fromEntries(random!.Shuffle(ACTION_TILES.filter(tile => tile.numPlayers.includes(numPlayers)))
-                .map((tile, i) => [i, tile])),
-            clock: { numMillisLeft: TIMER_MILLIS, atTime: Date.now(), frozen: true },
-            config: gameConfig,
-            explorableAreas: [],
-            numCrystalBallUses: 0,
-            pawnLocations: random!.Shuffle([[1, 1], [1, 2], [2, 1], [2, 2]])
-                .map(([localRow, localCol]) => ({ tileId: startTileId, localRow, localCol })),
-            placedTiles: { [startTileId]: placeTile(MALL_TILES[startTileId], { row: 0, col: 0, dir: 0 }) },
-            unplacedMallTileIds: [...random!.Shuffle(remainingMallTileIds), ...(topMallTileIds || [])],
-            usedObjects: [],
-            vortexSystemEnabled: true,
-        };
-    },
+    setup: (ctx: Ctx) => setup(ctx, SCENARIOS[1]),
 
     turn: {
         activePlayers: { all: '' },
+    },
+
+    phases: {
+        setConfig: {
+            moves: {
+                setGameConfig: (G: GameState, _ctx: Ctx, newConfig: GameConfig) => {
+                    G.config = newConfig;
+                },
+                updateGameConfig: (G: GameState, _ctx: Ctx, update: Partial<GameConfig>) => {
+                    G.config = {
+                        ...G.config,
+                        ...update,
+                    };
+                },
+                sync: () => {},
+            },
+            onEnd: (G: GameState, ctx: Ctx) => setup(ctx, G.config),
+            start: true,
+            next: 'play',
+        },
+
+        play: {
+            endIf: (G: GameState) => {
+                const { clock: { numMillisLeft }, vortexSystemEnabled } = G;
+                return numMillisLeft <= 0 || (!vortexSystemEnabled && range(4).every(i => atExit(G, i)));
+            },
+            onEnd: (G: GameState) => {
+                const { clock: { numMillisLeft }, config } = G;
+                const { scenario } = config;
+                G.config = numMillisLeft > 0 && some(SCENARIOS, config) && scenario + 1 < SCENARIOS.length
+                    ? SCENARIOS[scenario + 1]
+                    : config;
+            },
+            next: 'setConfig',
+        },
     },
 
     moves: {
@@ -194,7 +228,7 @@ export const Game = {
                 placedTiles,
                 usedObjects,
             } = G;
-            const { numPlayers, playerID, playOrder } = ctx;
+            const { numPlayers, playerID } = ctx;
             if (!some(getPossibleDestinations(G, playerID, pawn), newLocation)) {
                 return INVALID_MOVE;
             }
@@ -292,9 +326,4 @@ export const Game = {
 
     minPlayers: 2,
     maxPlayers: 8,
-
-    endIf: (G: GameState) => {
-        const { clock: { numMillisLeft }, vortexSystemEnabled } = G;
-        return numMillisLeft <= 0 || (!vortexSystemEnabled && range(4).every(i => atExit(G, i)));
-    },
 };
