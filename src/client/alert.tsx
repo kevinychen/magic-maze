@@ -29,8 +29,6 @@ export class Alert extends React.Component<BoardProps, State> {
                         clearTimeout(this.timeout);
                     }
                     this.timeout = setTimeout(() => this.setState({ enabled: false }), 1000);
-                } else {
-                    this.setState({ enabled: false });
                 }
             }
         }

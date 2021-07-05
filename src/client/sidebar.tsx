@@ -1,19 +1,23 @@
 import { BoardProps } from 'boardgame.io/react';
-import { range } from 'lodash';
+import { isEqual, range } from 'lodash';
 import React from 'react';
 import './sidebar.css';
 
 interface State {
+
     height: number;
+    alertedPlayerIDs: { [playerID: string]: boolean };
 }
 
 export class Sidebar extends React.Component<BoardProps, State> {
 
     private el?: HTMLDivElement | null;
+    private alertTimeouts: { [playerID: string]: NodeJS.Timeout };
 
     constructor(props: BoardProps) {
         super(props);
-        this.state = { height: 0 };
+        this.state = { height: 0, alertedPlayerIDs: {} };
+        this.alertTimeouts = {};
     }
 
     componentDidMount() {
@@ -23,6 +27,24 @@ export class Sidebar extends React.Component<BoardProps, State> {
 
     componentWillUnmount() {
         window.removeEventListener('resize', this.updateHeight);
+        Object.values(this.alertTimeouts).forEach(clearTimeout);
+    }
+
+    componentDidUpdate(prevProps: BoardProps) {
+        const { G: { doSomethingPawn } } = this.props;
+        if (!isEqual(doSomethingPawn, prevProps.G.doSomethingPawn)) {
+            if (doSomethingPawn !== undefined) {
+                const { playerID } = doSomethingPawn;
+                this.setState({ alertedPlayerIDs: { ...this.state.alertedPlayerIDs, [playerID]: true } });
+                if (playerID in this.alertTimeouts) {
+                    clearTimeout(this.alertTimeouts[playerID]);
+                }
+                this.alertTimeouts[playerID] = setTimeout(
+                    () => this.setState({ alertedPlayerIDs: { ...this.state.alertedPlayerIDs, [playerID]: false } }),
+                    1000,
+                );
+            }
+        }
     }
 
     render() {
@@ -40,8 +62,14 @@ export class Sidebar extends React.Component<BoardProps, State> {
     }
 
     private renderPlayer(playerID: string) {
-        const { G: { actionTiles, vortexSystemEnabled }, ctx: { numPlayers }, moves, playerID: myPlayerID } = this.props;
-        const { height } = this.state;
+        const {
+            G: { actionTiles, doSomethingPawn, vortexSystemEnabled },
+            ctx: { numPlayers },
+            moves,
+            playerID: myPlayerID,
+        } = this.props;
+        const { height, alertedPlayerIDs } = this.state;
+        const isShaking = alertedPlayerIDs[playerID];
         return <div
             key={playerID}
             className="player"
@@ -55,20 +83,14 @@ export class Sidebar extends React.Component<BoardProps, State> {
                 alt=''
             />
             <div className="player-info">
-                {playerID === myPlayerID
-                    ? <>
-                        {"ME"}
-                    </>
-                    : <>
-                        {`Player ${playerID}`}
-                        <br />
-                        <img
-                            className="alert"
-                            src="./alert.png"
-                            alt="alert"
-                            onClick={() => moves.moveDoSomethingPawn(playerID)}
-                        />
-                    </>}
+                {playerID === myPlayerID ? "ME" : `Player ${playerID}`}
+                <br />
+                <img
+                    className={`alert ${isShaking ? 'shake' : ''}`}
+                    src={playerID === doSomethingPawn?.playerID || alertedPlayerIDs[playerID] ? "./alerting.png" : "./alert.png"}
+                    alt="alert"
+                    onClick={isShaking ? undefined : () => moves.moveDoSomethingPawn(playerID)}
+                />
             </div>
         </div>;
     }

@@ -208,6 +208,7 @@ export const Game = {
             onEnd: (G: GameState) => {
                 const { clock: { numMillisLeft }, config } = G;
                 const { scenario } = config;
+                G.clock.frozen = true;
                 G.config = numMillisLeft > 0 && some(SCENARIOS, config) && scenario + 1 < SCENARIOS.length
                     ? SCENARIOS[scenario + 1]
                     : config;

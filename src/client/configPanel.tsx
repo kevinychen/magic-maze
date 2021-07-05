@@ -41,10 +41,10 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
             <div className="field">
                 {'Tile set: '}
                 {this.renderChoices('remainingMallTileIds', [
-                    { value: ['2', '3', '4', '5', '6', '7', '8', '9'], humanReadableValue: 'intro (2-9)' },
+                    { value: ['2', '3', '4', '5', '6', '7', '8', '9'], humanReadableValue: 'single exit (2-9)' },
                     { value: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'], humanReadableValue: 'basic (2-12)' },
-                    { value: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'], humanReadableValue: 'medium (2-14)' },
-                    { value: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17'], humanReadableValue: 'hard (2-17)' },
+                    { value: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'], humanReadableValue: 'orange walls (2-14)' },
+                    { value: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17'], humanReadableValue: 'cameras (2-17)' },
                     { value: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'], humanReadableValue: 'full (2-19)' },
                 ], remainingMallTileIds)}
             </div>
