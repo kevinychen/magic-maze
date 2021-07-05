@@ -58,10 +58,9 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
     }
 
     render() {
-        const { ctx: { phase }} = this.props;
         return <div className="board">
             {this.renderGame()}
-            {phase === 'setConfig' ? <ConfigPanel {...this.props} /> : undefined}
+            {this.isPlayPhase() ? undefined : <ConfigPanel {...this.props} />}
             <Sidebar {...this.props} />
             {this.renderInfo()}
             <Alert {...this.props} />
@@ -97,7 +96,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                 key={i}
                 className="object destination"
                 style={this.getPositionStyle(loc, SQUARE_SIZE)}
-                onClick={() => moves.movePawn(selectedPawn, loc)}
+                onClick={this.isPlayPhase() ? () => moves.movePawn(selectedPawn, loc) : undefined}
             />)}
             {pawnLocations.map((pawnLocation, pawn) => <Pawn
                 color={COLORS[pawn as Color]}
@@ -123,7 +122,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                 transform: `rotate(${dir * 90}deg)`,
                 transformOrigin: "center",
             }}
-            onClick={canFinishExplore ? () => moves.finishExplore(tilePlacement) : undefined}
+            onClick={canFinishExplore && this.isPlayPhase() ? () => moves.finishExplore(tilePlacement) : undefined}
         />;
     }
 
@@ -148,7 +147,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
             </span>
             <span
                 className={`section explore ${canStartExplore ? 'enabled' : 'disabled'}`}
-                onClick={canStartExplore ? () => moves.startExplore() : undefined}
+                onClick={canStartExplore && this.isPlayPhase() ? () => moves.startExplore() : undefined}
             >
                 {`🔍 x${unplacedMallTileIds.length}`}
             </span>
@@ -174,5 +173,10 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
             top: row * MALL_TILE_SIZE + (col + localRow) * SQUARE_SIZE + (MALL_TILE_SIZE - 3 * SQUARE_SIZE - size) / 2,
             left: col * MALL_TILE_SIZE + (-row + localCol) * SQUARE_SIZE + (MALL_TILE_SIZE - 3 * SQUARE_SIZE - size) / 2,
         };
+    }
+
+    private isPlayPhase() {
+        const { ctx: { phase } } = this.props;
+        return phase === 'play';
     }
 }

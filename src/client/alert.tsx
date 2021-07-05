@@ -43,7 +43,7 @@ export class Alert extends React.Component<BoardProps, State> {
     render() {
         const { ctx: { playOrder }, matchData } = this.props;
         const { enabled, alertedByPlayerID } = this.state;
-        const playerName = matchData === undefined ? `Player ${alertedByPlayerID}` : matchData[playOrder.indexOf(alertedByPlayerID)];
+        const playerName = matchData === undefined ? `Player ${alertedByPlayerID}` : matchData[playOrder.indexOf(alertedByPlayerID)]?.name;
         return <>
             <div className={`alert-border ${enabled ? 'enabled' : 'disabled'}`}>
                 <div className="alert-msg">{`${playerName} says: DO SOMETHING!`}</div>

@@ -64,7 +64,7 @@ export class Sidebar extends React.Component<BoardProps, State> {
     private renderPlayer(playerID: string) {
         const {
             G: { actionTiles, doSomethingPawn, vortexSystemEnabled },
-            ctx: { numPlayers },
+            ctx: { numPlayers, phase },
             moves,
             playerID: myPlayerID,
         } = this.props;
@@ -89,7 +89,7 @@ export class Sidebar extends React.Component<BoardProps, State> {
                     className={`alert ${isShaking ? 'shake' : ''}`}
                     src={playerID === doSomethingPawn?.playerID || alertedPlayerIDs[playerID] ? "./alerting.png" : "./alert.png"}
                     alt="alert"
-                    onClick={isShaking ? undefined : () => moves.moveDoSomethingPawn(playerID)}
+                    onClick={isShaking || phase !== 'play' ? undefined : () => moves.moveDoSomethingPawn(playerID)}
                 />
             </div>
         </div>;

@@ -1,7 +1,33 @@
-.lobby .bgio-client {
-    position: fixed;
-    top: 0px;
-    left: 0px;
+.lobby {
+    text-align: center;
+    font-family: 'Maiandra';
+}
+
+.lobby .title {
     width: 100vw;
-    height: 100vh;
+}
+
+.lobby .title img {
+    max-height: 40vh;
+    margin: 0 auto;
+    display: block;
+}
+
+.lobby .matches table {
+    margin: 0 auto;
+    border-spacing: 5px;
+}
+
+.lobby .matches td {
+    border: 1px solid lightgray;
+    padding: 5px;
+}
+
+.leave-button {
+    position: fixed;
+    bottom: 5px;
+    left: 5px;
+    background-color: red;
+    color: black;
+    cursor: pointer;
 }

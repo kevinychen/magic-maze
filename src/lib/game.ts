@@ -170,10 +170,12 @@ export function canExplore({ actionTiles }: GameState, playerID: string | null |
     return playerID !== undefined && playerID !== null && actionTiles[playerID].actions.includes(Action.EXPLORE);
 }
 
-export const Title = "Magic Maze";
+export const Name = "magic-maze";
+export const MinPlayers = 2;
+export const MaxPlayers = 8;
 
 export const Game = {
-    name: "magic-maze",
+    name: Name,
 
     setup: (ctx: Ctx) => setup(ctx, SCENARIOS[1]),
 
@@ -325,6 +327,6 @@ export const Game = {
         },
     },
 
-    minPlayers: 2,
-    maxPlayers: 8,
+    minPlayers: MinPlayers,
+    maxPlayers: MaxPlayers,
 };
