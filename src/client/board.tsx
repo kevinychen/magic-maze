@@ -166,7 +166,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
 
     private getPositionStyle({ tileId, localRow, localCol }: Location, size: number) {
         const { G: { placedTiles } } = this.props;
-        const { row, col } = placedTiles[tileId];
+        const { row, col } = tileId in placedTiles ? placedTiles[tileId] : { row: -1, col: -1 };
         return {
             width: size,
             height: size,

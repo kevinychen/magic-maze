@@ -144,22 +144,36 @@ export function getPossibleDestinations(G: GameState, playerID: string | null | 
 }
 
 export function getExplorableAreas(G: GameState): TilePlacement[] {
-    const { numCrystalBallUses, pawnLocations, placedTiles, unplacedMallTileIds } = G;
+    const { numCrystalBallUses, pawnLocations, placedTiles, unplacedMallTileIds, usedObjects } = G;
+    if (unplacedMallTileIds.length === 0) {
+        return [];
+    }
+    let numCameras = 0;
+    for (const [tileId, { squares }] of Object.entries(placedTiles)) {
+        for (let row = 0; row < 4; row++) {
+            for (let col = 0; col < 4; col++) {
+                if (squares[row][col].camera !== undefined && !some(usedObjects, { tileId, localRow: row, localCol: col })) {
+                    numCameras++;
+                }
+            }
+        }
+    }
+    if (numCameras >= 2) {
+        return [];
+    }
     const explorableAreas: TilePlacement[] = [];
-    if (unplacedMallTileIds.length > 0) {
-        const [newTileId] = unplacedMallTileIds.slice(-1);
-        for (const [tileId, { row, col, exploreDirs }] of Object.entries(placedTiles)) {
-            for (let dir = 0; dir < 4; dir++) {
-                const { drow, dcol } = DIRS[dir];
-                const explorePawn = exploreDirs[dir];
-                if (explorePawn === undefined) {
-                    continue;
-                }
-                const { row: localRow, col: localCol } = EXPLORE_LOCATIONS[dir];
-                if ((isEqual(pawnLocations[explorePawn], { tileId, localRow, localCol }) || numCrystalBallUses >= 1)
-                    && !Object.values(placedTiles).some(tile => tile.row === row + drow && tile.col === col + dcol)) {
-                    explorableAreas.push({ row: row + drow, col: col + dcol, dir: (dir - MALL_TILES[newTileId].entranceDir! + 6) % 4 });
-                }
+    const [newTileId] = unplacedMallTileIds.slice(-1);
+    for (const [tileId, { row, col, exploreDirs }] of Object.entries(placedTiles)) {
+        for (let dir = 0; dir < 4; dir++) {
+            const { drow, dcol } = DIRS[dir];
+            const explorePawn = exploreDirs[dir];
+            if (explorePawn === undefined) {
+                continue;
+            }
+            const { row: localRow, col: localCol } = EXPLORE_LOCATIONS[dir];
+            if ((isEqual(pawnLocations[explorePawn], { tileId, localRow, localCol }) || numCrystalBallUses >= 1)
+                && !Object.values(placedTiles).some(tile => tile.row === row + drow && tile.col === col + dcol)) {
+                explorableAreas.push({ row: row + drow, col: col + dcol, dir: (dir - MALL_TILES[newTileId].entranceDir! + 6) % 4 });
             }
         }
     }
@@ -272,6 +286,9 @@ export const Game = {
 
             if (getSquare(G, pawn).crystal === pawn && !some(usedObjects, pawnLocations[pawn])) {
                 G.numCrystalBallUses = MAX_CRYSTAL_BALL_USES;
+            }
+            if (getSquare(G, pawn).camera === pawn && !some(usedObjects, pawnLocations[pawn])) {
+                usedObjects.push(pawnLocations[pawn]);
             }
         },
         startExplore: (G: GameState, ctx: Ctx) => {

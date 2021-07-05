@@ -9,7 +9,7 @@ export function placeTile(tile: UnplacedMallTile, tilePlacement: TilePlacement):
         for (let row = 0; row < 4; row++) {
             newSquares[row] = new Array(4);
             for (let col = 0; col < 4; col++) {
-                newSquares[row][col] = squares[3 - col][row];
+                newSquares[row][col] = { ...squares[3 - col][row] };
                 const walls = newSquares[row][col].walls;
                 newSquares[row][col].walls = [walls[3], ...walls.slice(0, -1)];
             }

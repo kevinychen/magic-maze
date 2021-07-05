@@ -341,6 +341,7 @@ export const HUMAN_READABLE_MALL_TILES: { [id: string]: HumanReadableMallTile } 
             ['yellow camera', '', '', 'green vortex'],
         ],
         edges: ['purple', 'orange', 'entrance', 'yellow'],
+        orangeWall: { loc: [2, 2], dir: '|' },
     },
     '20': {
         walls: [
