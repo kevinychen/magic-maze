@@ -68,7 +68,7 @@ body {
 
 .game .destination {
     background-color: green;
-    opacity: 50%;
+    opacity: 0.5;
 }
 
 .info {

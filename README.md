@@ -1,6 +1,10 @@
 # Magic Maze
 
-An online implementation of the asynchronous cooperative board game [Magic Maze](https://boardgamegeek.com/boardgame/209778/magic-maze) ([rules](https://sitdown-games.com/wp-content/uploads/2018/09/MM_Rules_EN_HR_Sept2018_LD.pdf)). Try it at https://util.in:8100.
+An online implementation of the asynchronous cooperative board game [Magic Maze](https://boardgamegeek.com/boardgame/209778/magic-maze). Try it at https://util.in:8100.
+
+![Magic Maze](docs/magic-maze.png)
+
+The rules are [here](https://sitdown-games.com/wp-content/uploads/2018/09/MM_Rules_EN_HR_Sept2018_LD.pdf).
 
 ## Quickstart
 
