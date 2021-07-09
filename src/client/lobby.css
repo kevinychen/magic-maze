@@ -24,10 +24,23 @@
 }
 
 .leave-button {
+    left: 5px;
+}
+
+.restart-button {
+    left: 75px;
+}
+
+.toggle-button {
     position: fixed;
     bottom: 5px;
-    left: 5px;
-    background-color: red;
-    color: black;
     cursor: pointer;
+    background-color: white;
+    border: 2px solid black;
+    border-radius: 5px;
+    height: 32px;
+}
+
+.toggle-button:hover {
+    background-color: #d0cedc;
 }

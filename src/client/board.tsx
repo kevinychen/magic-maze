@@ -58,11 +58,23 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
     }
 
     render() {
+        const { moves } = this.props;
         return <div className="board">
             {this.renderGame()}
-            {this.isPlayPhase() ? undefined : <ConfigPanel {...this.props} />}
             <Sidebar {...this.props} />
             {this.renderInfo()}
+            {this.isPlayPhase()
+                ? <img
+                    className="restart-button toggle-button"
+                    src="./restart.png"
+                    alt="Restart"
+                    onClick={() => {
+                        if (window.confirm('Are you sure you want to restart?')) {
+                            moves.restart();
+                        }
+                    }}
+                />
+                : <ConfigPanel {...this.props} />}
             <Alert {...this.props} />
         </div>;
     }

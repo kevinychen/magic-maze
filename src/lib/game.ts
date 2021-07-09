@@ -322,6 +322,9 @@ export const Game = {
                 G.numCrystalBallUses--;
             }
         },
+        restart: (G: GameState) => {
+            G.clock.numMillisLeft = 0;
+        },
         sync: {
             move: (G: GameState) => {
                 const { clock: { numMillisLeft, atTime, frozen } } = G;

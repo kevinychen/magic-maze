@@ -95,12 +95,12 @@ export default class WrappedLobby extends React.Component<{}, State> {
                     playerID={playerID}
                     credentials={credentials}
                 />
-                <button
-                    className="leave-button"
+                <img
+                    className="leave-button toggle-button"
+                    src="./leave.png"
+                    alt="Leave"
                     onClick={() => this.leaveMatch().then(this.refreshLobbyState)}
-                >
-                    {'Leave'}
-                </button>
+                />
             </div>;
         }
         const lobby = name === null

@@ -64,11 +64,13 @@ export class Sidebar extends React.Component<BoardProps, State> {
     private renderPlayer(playerID: string) {
         const {
             G: { actionTiles, doSomethingPawn, vortexSystemEnabled },
-            ctx: { numPlayers, phase },
+            ctx: { numPlayers, phase, playOrder },
+            matchData,
             moves,
             playerID: myPlayerID,
         } = this.props;
         const { height, alertedPlayerIDs } = this.state;
+        const playerName = matchData === undefined ? `Player ${playerID}` : matchData[playOrder.indexOf(playerID)]?.name;
         const isShaking = alertedPlayerIDs[playerID];
         return <div
             key={playerID}
@@ -83,7 +85,7 @@ export class Sidebar extends React.Component<BoardProps, State> {
                 alt=''
             />
             <div className="player-info">
-                {playerID === myPlayerID ? "ME" : `Player ${playerID}`}
+                {playerID === myPlayerID ? "ME" : playerName}
                 <br />
                 <img
                     className={`alert ${isShaking ? 'shake' : ''}`}
