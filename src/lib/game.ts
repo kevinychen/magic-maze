@@ -62,7 +62,7 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action
     // Check if currently at an exit to a neighboring tile
     const { drow, dcol } = DIRS[dir];
     if (localRow === EXPLORE_LOCATIONS[dir].row && localCol === EXPLORE_LOCATIONS[dir].col) {
-        if (entranceDir !== dir && exploreDirs[dir] === undefined) {
+        if (entranceDir !== dir && exploreDirs[dir] === null) {
             return undefined;
         }
         const newTileEntry = Object.entries(placedTiles)
@@ -71,7 +71,7 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action
             return undefined;
         }
         const [newTileId, newTile] = newTileEntry;
-        if (newTile.entranceDir !== (dir + 2) % 4 && newTile.exploreDirs[(dir + 2) % 4] === undefined) {
+        if (newTile.entranceDir !== (dir + 2) % 4 && newTile.exploreDirs[(dir + 2) % 4] === null) {
             return undefined;
         }
         return { tileId: newTileId, localRow: 3 - localRow, localCol: 3 - localCol };
@@ -172,7 +172,7 @@ export function getExplorableAreas(G: GameState, playerID: string | null | undef
         for (let dir = 0; dir < 4; dir++) {
             const { drow, dcol } = DIRS[dir];
             const explorePawn = exploreDirs[dir];
-            if (explorePawn === undefined) {
+            if (explorePawn === null) {
                 continue;
             }
             const { row: localRow, col: localCol } = EXPLORE_LOCATIONS[dir];
@@ -219,7 +219,6 @@ export const Game = {
                         ...update,
                     };
                 },
-                sync: () => {},
             },
             onEnd: (G: GameState, ctx: Ctx) => setup(ctx, G.config),
             start: true,
@@ -232,8 +231,10 @@ export const Game = {
                 return numMillisLeft <= 0 || (!vortexSystemEnabled && range(4).every(i => atExit(G, i)));
             },
             onEnd: (G: GameState) => {
-                const { clock: { numMillisLeft }, config } = G;
+                const { clock: { numMillisLeft, atTime }, config } = G;
                 const { scenario } = config;
+                const now = Date.now();
+                G.clock = { numMillisLeft: numMillisLeft - (now - atTime), atTime: now, frozen: true}
                 G.clock.frozen = true;
                 G.config = numMillisLeft > 0 && some(SCENARIOS, config) && scenario + 1 < SCENARIOS.length
                     ? SCENARIOS[scenario + 1]

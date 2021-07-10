@@ -11,7 +11,7 @@ export interface Location {
 
 export interface Square {
 
-    walls: (Wall | undefined)[];
+    walls: (Wall | null)[];
     vortex?: Color;
     timer: boolean;
     exit?: Color;
@@ -24,7 +24,7 @@ export interface UnplacedMallTile {
 
     squares: Square[][];
     entranceDir?: number,
-    exploreDirs: (Color | undefined)[],
+    exploreDirs: (Color | null)[],
     escalators: { startRow: number, startCol: number, endRow: number, endCol: number }[];
 }
 

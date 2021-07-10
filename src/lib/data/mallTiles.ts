@@ -299,7 +299,7 @@ export const HUMAN_READABLE_MALL_TILES: { [id: string]: HumanReadableMallTile } 
     },
     '17': {
         walls: [
-            'J_|_',
+            'J |_',
             '_J _',
             '_ |_',
             '||  ',
@@ -469,7 +469,7 @@ function parse(mallTile: HumanReadableMallTile): UnplacedMallTile {
         switch (edge) {
             case 'wall':
             case 'entrance':
-                return undefined;
+                return null;
             default:
                 return COLORS.indexOf(edge);
         }

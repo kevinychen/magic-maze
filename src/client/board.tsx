@@ -2,7 +2,7 @@ import { BoardProps } from 'boardgame.io/react';
 import { intersectionWith, isEqual, range } from 'lodash';
 import React from 'react';
 import { PanZoom } from 'react-easy-panzoom'
-import { canExplore, getExplorableAreas, getPossibleDestinations, getSquare } from '../lib/game';
+import { atExit, canExplore, getExplorableAreas, getPossibleDestinations, getSquare } from '../lib/game';
 import { Color, ExplorableArea, GameState, Location, TilePlacement } from '../lib/types';
 import { Alert } from './alert';
 import { Clock } from './clock';
@@ -69,7 +69,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                     src="./restart.png"
                     alt="Restart"
                     onClick={() => {
-                        if (window.confirm('Are you sure you want to restart?')) {
+                        if (window.confirm('Restart the game for everyone?')) {
                             moves.restart();
                         }
                     }}
@@ -104,17 +104,17 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                 src="./used.png"
                 alt="used"
             />)}
-            {possibleDestinations.map((loc, i) => <span
-                key={i}
-                className="object destination"
-                style={this.getPositionStyle(loc, SQUARE_SIZE)}
-                onClick={this.isPlayPhase() ? () => moves.movePawn(selectedPawn, loc) : undefined}
-            />)}
             {pawnLocations.map((pawnLocation, pawn) => <Pawn
                 color={COLORS[pawn as Color]}
                 selected={selectedPawn === pawn}
                 onClick={() => this.setState({ selectedPawn: selectedPawn === pawn ? undefined : pawn })}
                 {...this.getPositionStyle(pawnLocation, PAWN_SIZE)}
+            />)}
+            {possibleDestinations.map((loc, i) => <span
+                key={i}
+                className="object destination"
+                style={this.getPositionStyle(loc, SQUARE_SIZE)}
+                onClick={this.isPlayPhase() ? () => moves.movePawn(selectedPawn, loc) : undefined}
             />)}
         </PanZoom>;
     }
@@ -170,7 +170,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
         const { clock: { numMillisLeft, atTime, frozen }, unplacedMallTileIds, vortexSystemEnabled } = G;
         const weapons: Color[] = vortexSystemEnabled
             ? range(4).filter(i => getSquare(G, i).weapon === i)
-            : range(4).filter(i => getSquare(G, i).exit !== i);
+            : range(4).filter(i => !atExit(G, i));
         return <div
             className="info"
         >

@@ -1,5 +1,5 @@
 import { BoardProps } from 'boardgame.io/react';
-import { isEqual, some } from 'lodash';
+import { isEqual } from 'lodash';
 import React from 'react';
 import { SCENARIOS } from '../lib/data';
 import { GameState } from '../lib/types';
@@ -31,7 +31,7 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
                 {'▲'}
             </div>
             <div className="field scenario">
-                {`Scenario ${scenario} ${some(SCENARIOS, config) ? '' : '(custom)'}`}
+                {`Scenario ${scenario} ${isEqual(SCENARIOS[scenario], config) ? '' : '(custom)'}`}
             </div>
             <hr />
             <div className="field">
