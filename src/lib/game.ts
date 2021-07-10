@@ -1,5 +1,5 @@
 import { Ctx } from "boardgame.io";
-import { findKey, intersectionWith, isEqual, range, some } from 'lodash';
+import { findKey, isEqual, range, some } from 'lodash';
 import { ACTION_TILES, MALL_TILES, SCENARIOS } from "./data";
 import { placeTile } from "./tiles";
 import { Action, Color, ExplorableArea, GameConfig, GameState, Location, Square, Wall } from "./types";
@@ -143,9 +143,14 @@ export function getPossibleDestinations(G: GameState, playerID: string | null | 
     return possibleDestinations;
 }
 
+export function canExplore(G: GameState, playerID: string | null | undefined) {
+    const { actionTiles } = G;
+    return playerID !== undefined && playerID !== null && actionTiles[playerID].actions.includes(Action.EXPLORE);
+}
+
 export function getExplorableAreas(G: GameState, playerID: string | null | undefined): ExplorableArea[] {
-    const { actionTiles, numCrystalBallUses, pawnLocations, placedTiles, unplacedMallTileIds, usedObjects } = G;
-    if (unplacedMallTileIds.length === 0 || playerID === undefined || playerID === null || !actionTiles[playerID].actions.includes(Action.EXPLORE)) {
+    const { numCrystalBallUses, pawnLocations, placedTiles, unplacedMallTileIds, usedObjects } = G;
+    if (unplacedMallTileIds.length === 0 || !canExplore(G, playerID)) {
         return [];
     }
     let numCameras = 0;
@@ -244,7 +249,7 @@ export const Game = {
                 actionTiles,
                 clock: { numMillisLeft, atTime, frozen},
                 config: { skipPassingActions },
-                explorableAreas,
+                exploringArea,
                 numCrystalBallUses,
                 pawnLocations,
                 placedTiles,
@@ -264,9 +269,9 @@ export const Game = {
 
             pawnLocations[pawn] = newLocation;
 
-            // Can't move pawn away if in the middle of exploring
+            // Can't move pawn away from the currently exploring area
             const exploringPlayerID = findKey(actionTiles, tile => tile.actions.includes(Action.EXPLORE));
-            if (explorableAreas.length > 0 && !some(intersectionWith(explorableAreas, getExplorableAreas(G, exploringPlayerID), isEqual))) {
+            if (exploringArea !== undefined && !some(getExplorableAreas(G, exploringPlayerID), exploringArea)) {
                 return INVALID_MOVE;
             }
 
@@ -297,28 +302,31 @@ export const Game = {
                 usedObjects.push(pawnLocations[pawn]);
             }
         },
-        startExplore: (G: GameState, ctx: Ctx) => {
-            const { explorableAreas } = G;
+        startExplore: (G: GameState, ctx: Ctx, newExploringArea: ExplorableArea) => {
+            const { explorableAreas, exploringArea } = G;
             const { playerID } = ctx;
-            if (explorableAreas.length > 0) {
-                return INVALID_MOVE;
-            }
             const newExplorableAreas = getExplorableAreas(G, playerID);
-            if (newExplorableAreas.length === 0) {
+            if (!some(newExplorableAreas, newExploringArea)) {
                 return INVALID_MOVE;
             }
-            G.explorableAreas = newExplorableAreas;
+            if (exploringArea === undefined) {
+                G.explorableAreas = newExplorableAreas;
+            } else if (!some(explorableAreas, newExploringArea)) {
+                return INVALID_MOVE;
+            }
+            G.exploringArea = newExploringArea;
         },
-        finishExplore: (G: GameState, ctx: Ctx, explorableArea: ExplorableArea) => {
-            const { explorableAreas, numCrystalBallUses, placedTiles, unplacedMallTileIds } = G;
+        finishExplore: (G: GameState, ctx: Ctx) => {
+            const { exploringArea, numCrystalBallUses, placedTiles, unplacedMallTileIds } = G;
             const { playerID } = ctx;
-            if (!some(intersectionWith(explorableAreas, getExplorableAreas(G, playerID), isEqual), explorableArea)) {
+            if (exploringArea === undefined || !canExplore(G, playerID)) {
                 return INVALID_MOVE;
             }
             const newTileId = unplacedMallTileIds.pop()!;
-            placedTiles[newTileId] = placeTile(MALL_TILES[newTileId], explorableArea);
+            placedTiles[newTileId] = placeTile(MALL_TILES[newTileId], exploringArea);
             G.explorableAreas = [];
-            if (numCrystalBallUses >= 1 && !explorableArea.canPawnExplore) {
+            G.exploringArea = undefined;
+            if (numCrystalBallUses >= 1 && !exploringArea.canPawnExplore) {
                 G.numCrystalBallUses--;
             }
         },

@@ -2,7 +2,7 @@ import { BoardProps } from 'boardgame.io/react';
 import { intersectionWith, isEqual, range } from 'lodash';
 import React from 'react';
 import { PanZoom } from 'react-easy-panzoom'
-import { getExplorableAreas, getPossibleDestinations, getSquare } from '../lib/game';
+import { canExplore, getExplorableAreas, getPossibleDestinations, getSquare } from '../lib/game';
 import { Color, ExplorableArea, GameState, Location, TilePlacement } from '../lib/types';
 import { Alert } from './alert';
 import { Clock } from './clock';
@@ -26,7 +26,6 @@ interface State {
     selectedPawn?: Color;
     possibleDestinations: Location[];
     currentlyExplorableAreas: ExplorableArea[];
-    currentExplorableArea?: ExplorableArea;
 }
 
 export class Board extends React.Component<BoardProps<GameState>, State> {
@@ -46,7 +45,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
 
     componentDidUpdate() {
         const { G, playerID } = this.props;
-        const { selectedPawn, possibleDestinations, currentlyExplorableAreas, currentExplorableArea } = this.state;
+        const { selectedPawn, possibleDestinations, currentlyExplorableAreas } = this.state;
 
         const newState: State = {
             possibleDestinations: selectedPawn === undefined ? [] : getPossibleDestinations(G, playerID, selectedPawn),
@@ -55,9 +54,6 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
         if (!isEqual(possibleDestinations, newState.possibleDestinations)
             || !isEqual(currentlyExplorableAreas, newState.currentlyExplorableAreas)) {
             this.setState(newState);
-        }
-        if (!this.isPlayPhase() && currentExplorableArea !== undefined) {
-            this.setState({ currentExplorableArea: undefined });
         }
     }
 
@@ -124,11 +120,12 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
     }
 
     renderMallTile(tileId: string, tilePlacement: TilePlacement, placed: boolean) {
-        const { moves } = this.props;
+        const { G, moves, playerID } = this.props;
         const { row, col, dir } = tilePlacement;
+        const explorable = !placed && canExplore(G, playerID);
         return <img
             key={tileId}
-            className={`object ${placed ? 'placed' : 'unplaced'} ${placed ? '' : 'explorable'}`}
+            className={`object ${placed ? 'placed' : 'unplaced'} ${explorable ? 'explorable' : ''}`}
             src={`./tiles/tile${tileId}.jpg`}
             alt={`Tile ${tileId}`}
             style={{
@@ -137,10 +134,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                 transform: `rotate(${dir * 90}deg)`,
                 transformOrigin: "center",
             }}
-            onClick={placed ? undefined : () => {
-                this.setState({ currentExplorableArea: undefined });
-                moves.finishExplore(tilePlacement);
-            }}
+            onClick={explorable ? () => moves.finishExplore() : undefined}
         />;
     }
 
@@ -158,24 +152,17 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                 key={i}
                 className="object destination"
                 style={this.getExplorableAreaStyle(explorableArea)}
-                onClick={() => {
-                    this.setState({ currentExplorableArea: explorableArea });
-                    if (explorableAreas.length === 0) {
-                        moves.startExplore();
-                    }
-                }}
+                onClick={() => moves.startExplore(explorableArea)}
             />;
         });
     }
 
     maybeRenderCurrentExplorableArea() {
-        const { G } = this.props;
-        const { currentExplorableArea } = this.state;
-        const { unplacedMallTileIds } = G;
-        if (!this.isPlayPhase() || currentExplorableArea === undefined || unplacedMallTileIds.length === 0) {
+        const { G: { exploringArea, unplacedMallTileIds } } = this.props;
+        if (!this.isPlayPhase() || exploringArea === undefined || unplacedMallTileIds.length === 0) {
             return null;
         }
-        return this.renderMallTile(unplacedMallTileIds.slice(-1)[0], currentExplorableArea, false);
+        return this.renderMallTile(unplacedMallTileIds.slice(-1)[0], exploringArea, false);
     }
 
     renderInfo() {

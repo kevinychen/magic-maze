@@ -51,8 +51,8 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
             <div className="field">
                 {'Pass actions after timer flip: '}
                 {this.renderChoices('skipPassingActions', [
-                    { value: false, humanReadableValue: 'no' },
-                    { value: true, humanReadableValue: 'yes' },
+                    { value: false, humanReadableValue: 'yes' },
+                    { value: true, humanReadableValue: 'no' },
                 ], skipPassingActions || false)}
             </div>
             <button className="start" onClick={() => events.endPhase!()}>

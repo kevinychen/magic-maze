@@ -81,6 +81,7 @@ export interface GameState {
     config: GameConfig;
     doSomethingPawn?: { playerID: string, byPlayerID: string, atTime: number };
     explorableAreas: ExplorableArea[];
+    exploringArea?: ExplorableArea;
     numCrystalBallUses: number;
     pawnLocations: Location[];
     placedTiles: { [tileId: string]: MallTile };
