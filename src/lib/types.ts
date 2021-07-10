@@ -39,6 +39,7 @@ export type ExplorableArea = TilePlacement & {
     exploreRow: number,
     exploreCol: number,
     exploreDir: number,
+    canPawnExplore: boolean,
 };
 
 export type MallTile = UnplacedMallTile & TilePlacement;

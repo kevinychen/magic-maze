@@ -2,7 +2,7 @@ import { Ctx } from "boardgame.io";
 import { findKey, intersectionWith, isEqual, range, some } from 'lodash';
 import { ACTION_TILES, MALL_TILES, SCENARIOS } from "./data";
 import { placeTile } from "./tiles";
-import { Action, Color, ExplorableArea, GameConfig, GameState, Location, Square, TilePlacement, Wall } from "./types";
+import { Action, Color, ExplorableArea, GameConfig, GameState, Location, Square, Wall } from "./types";
 
 const DIRS = [{ drow: -1, dcol: 0 }, { drow: 0, dcol: 1 }, { drow: 1, dcol: 0 }, { drow: 0, dcol: -1 }];
 const EXPLORE_LOCATIONS = [{ row: 0, col: 2 }, { row: 2, col: 3 }, { row: 3, col: 1 }, { row: 1, col: 0 }];
@@ -171,12 +171,14 @@ export function getExplorableAreas(G: GameState, playerID: string | null | undef
                 continue;
             }
             const { row: localRow, col: localCol } = EXPLORE_LOCATIONS[dir];
-            if ((isEqual(pawnLocations[explorePawn], { tileId, localRow, localCol }) || numCrystalBallUses >= 1)
+            const canPawnExplore = isEqual(pawnLocations[explorePawn], { tileId, localRow, localCol });
+            if ((canPawnExplore || numCrystalBallUses >= 1)
                 && !Object.values(placedTiles).some(tile => tile.row === row + drow && tile.col === col + dcol)) {
                 explorableAreas.push({
                     exploreRow: row,
                     exploreCol: col,
                     exploreDir: dir,
+                    canPawnExplore,
                     row: row + drow,
                     col: col + dcol,
                     dir: (dir - MALL_TILES[newTileId].entranceDir! + 6) % 4,
@@ -307,16 +309,16 @@ export const Game = {
             }
             G.explorableAreas = newExplorableAreas;
         },
-        finishExplore: (G: GameState, ctx: Ctx, tilePlacement: TilePlacement) => {
+        finishExplore: (G: GameState, ctx: Ctx, explorableArea: ExplorableArea) => {
             const { explorableAreas, numCrystalBallUses, placedTiles, unplacedMallTileIds } = G;
             const { playerID } = ctx;
-            if (!some(intersectionWith(explorableAreas, getExplorableAreas(G, playerID), isEqual), tilePlacement)) {
+            if (!some(intersectionWith(explorableAreas, getExplorableAreas(G, playerID), isEqual), explorableArea)) {
                 return INVALID_MOVE;
             }
             const newTileId = unplacedMallTileIds.pop()!;
-            placedTiles[newTileId] = placeTile(MALL_TILES[newTileId], tilePlacement);
+            placedTiles[newTileId] = placeTile(MALL_TILES[newTileId], explorableArea);
             G.explorableAreas = [];
-            if (numCrystalBallUses >= 1) {
+            if (numCrystalBallUses >= 1 && !explorableArea.canPawnExplore) {
                 G.numCrystalBallUses--;
             }
         },
