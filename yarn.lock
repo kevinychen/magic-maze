@@ -3052,10 +3052,10 @@ bn.js@^5.0.0, bn.js@^5.1.1:
   resolved "https://registry.npmjs.org/bn.js/-/bn.js-5.2.0.tgz#358860674396c6997771a9d051fcc1b57d4ae002"
   integrity sha512-D7iWRBvnZE8ecXiLj/9wbxH7Tk79fAh8IHaTNq1RWRixsS02W+5qS+iE9yq6RYl0asXx5tw0bLhmT5pIfbSquw==
 
-boardgame.io@^0.44.4:
-  version "0.44.4"
-  resolved "https://registry.npmjs.org/boardgame.io/-/boardgame.io-0.44.4.tgz#d714aca59fe80693c832c0396981b1796b4b6c90"
-  integrity sha512-4335qTdZFXPKSMCLrA+pycwo7xOZ7OIijgsm/HTloLd4i8er1o1/adoZVoBdlIt4QmbA6VbXss2cBj8Oqi9X5g==
+boardgame.io@^0.43.3:
+  version "0.43.3"
+  resolved "https://registry.npmjs.org/boardgame.io/-/boardgame.io-0.43.3.tgz#3b6220488b8815f3930f368f0e998e7d5ed16699"
+  integrity sha512-rl94D5r1bz8zpMT+YIrNZ35IW/7OcJmv+rjUobKj8i27FjCPITc/utdthFyLm0UD9lZdemHKRFaOS4DKNdhUlQ==
   dependencies:
     "@koa/cors" "^2.2.1"
     "@types/koa" "^2.11.3"
@@ -3071,9 +3071,8 @@ boardgame.io@^0.44.4:
     prop-types "^15.5.10"
     react-cookies "^0.1.0"
     redux "^4.0.0"
-    rfc6902 "^4.0.1"
     socket.io "^2.4.1"
-    socket.io-client "^2.4.0"
+    socket.io-client "^2.3.0"
     svelte "^3.24.0"
     svelte-json-tree-auto "^0.1.0"
     ts-toolbelt "^6.3.6"
@@ -10008,11 +10007,6 @@ rework@1.0.1:
     convert-source-map "^0.3.3"
     css "^2.0.0"
 
-rfc6902@^4.0.1:
-  version "4.0.2"
-  resolved "https://registry.npmjs.org/rfc6902/-/rfc6902-4.0.2.tgz#ce99d3562b9e3287d403462e6bcc81eead8fcea0"
-  integrity sha512-MJOC4iDSv3Qn5/QvhPbrNoRongti6moXSShcRmtbNqOk0WPxlviEdMV4bb9PaULhSxLUXzWd4AjAMKQ3j3y54w==
-
 rgb-regex@^1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/rgb-regex/-/rgb-regex-1.0.1.tgz#c0e0d6882df0e23be254a475e8edd41915feaeb1"
@@ -10453,7 +10447,7 @@ socket.io-adapter@~1.1.0:
   resolved "https://registry.npmjs.org/socket.io-adapter/-/socket.io-adapter-1.1.2.tgz#ab3f0d6f66b8fc7fca3959ab5991f82221789be9"
   integrity sha512-WzZRUj1kUjrTIrUKpZLEzFZ1OLj5FwLlAFQs9kuZJzJi5DKdU7FsWc36SNmA8iDOtwBQyT8FkrriRM8vXLYz8g==
 
-socket.io-client@2.4.0, socket.io-client@^2.4.0:
+socket.io-client@2.4.0, socket.io-client@^2.3.0:
   version "2.4.0"
   resolved "https://registry.npmjs.org/socket.io-client/-/socket.io-client-2.4.0.tgz#aafb5d594a3c55a34355562fc8aea22ed9119a35"
   integrity sha512-M6xhnKQHuuZd4Ba9vltCLT9oa+YvTsP8j9NcEiLElfIg8KeYPyhWOes6x4t+LTAC8enQbE/995AdTem2uNyKKQ==
