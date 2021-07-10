@@ -3,7 +3,7 @@ import { intersectionWith, isEqual, range } from 'lodash';
 import React from 'react';
 import { PanZoom } from 'react-easy-panzoom'
 import { canExplore, getExplorableAreas, getPossibleDestinations, getSquare } from '../lib/game';
-import { Color, GameState, Location, TilePlacement } from '../lib/types';
+import { Color, ExplorableArea, GameState, Location, TilePlacement } from '../lib/types';
 import { Alert } from './alert';
 import { Clock } from './clock';
 import { Pawn } from './pawn';
@@ -25,7 +25,7 @@ interface State {
 
     selectedPawn?: Color;
     possibleDestinations: Location[];
-    currentlyExplorableAreas: TilePlacement[];
+    currentlyExplorableAreas: ExplorableArea[];
 }
 
 export class Board extends React.Component<BoardProps<GameState>, State> {
@@ -97,6 +97,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
             {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile, true))}
             {intersectionWith(explorableAreas, currentlyExplorableAreas, isEqual)
                 .map(exploreArea => this.renderMallTile(unplacedMallTileIds.slice(-1)[0], exploreArea, false))}
+            {this.maybeRenderExplorableAreas()}
             {usedObjects.map((loc, i) => <img
                 key={i}
                 className="object"
@@ -119,7 +120,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
         </PanZoom>;
     }
 
-    renderMallTile = (tileId: string, tilePlacement: TilePlacement, placed: boolean) => {
+    renderMallTile(tileId: string, tilePlacement: TilePlacement, placed: boolean) {
         const { G, moves, playerID } = this.props;
         const { row, col, dir } = tilePlacement;
         const canFinishExplore = canExplore(G, playerID) && !placed;
@@ -136,6 +137,23 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
             }}
             onClick={canFinishExplore && this.isPlayPhase() ? () => moves.finishExplore(tilePlacement) : undefined}
         />;
+    }
+
+    maybeRenderExplorableAreas() {
+        const { G, playerID, moves } = this.props;
+        const { currentlyExplorableAreas } = this.state;
+        const { explorableAreas } = G;
+        if (explorableAreas.length > 0 || currentlyExplorableAreas.length === 0 || !canExplore(G, playerID)) {
+            return null;
+        }
+        return currentlyExplorableAreas.map((explorableArea, i) => {
+            return <span
+                key={i}
+                className="object destination"
+                style={this.getExplorableAreaStyle(explorableArea)}
+                onClick={this.isPlayPhase() ? () => moves.startExplore() : undefined}
+            />;
+        });
     }
 
     renderInfo() {
@@ -185,6 +203,41 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
             top: row * MALL_TILE_SIZE + (col + localRow) * SQUARE_SIZE + (MALL_TILE_SIZE - 3 * SQUARE_SIZE - size) / 2,
             left: col * MALL_TILE_SIZE + (-row + localCol) * SQUARE_SIZE + (MALL_TILE_SIZE - 3 * SQUARE_SIZE - size) / 2,
         };
+    }
+
+    private getExplorableAreaStyle({ exploreRow, exploreCol, exploreDir }: ExplorableArea) {
+        const depth = (MALL_TILE_SIZE - 3 * SQUARE_SIZE - PAWN_SIZE) / 2;
+        const top = exploreRow * MALL_TILE_SIZE + exploreCol * SQUARE_SIZE;
+        const left = exploreCol * MALL_TILE_SIZE - exploreRow * SQUARE_SIZE;
+        if (exploreDir === 0) {
+            return {
+                width: SQUARE_SIZE,
+                height: depth,
+                top,
+                left: left + MALL_TILE_SIZE / 2,
+            };
+        } else if (exploreDir === 1) {
+            return {
+                width: depth,
+                height: SQUARE_SIZE,
+                top: top + MALL_TILE_SIZE / 2,
+                left: left + MALL_TILE_SIZE - depth,
+            };
+        } else if (exploreDir === 2) {
+            return {
+                width: SQUARE_SIZE,
+                height: depth,
+                top: top + MALL_TILE_SIZE - depth,
+                left: left + MALL_TILE_SIZE / 2 - SQUARE_SIZE,
+            };
+        } else if (exploreDir === 3) {
+            return {
+                width: depth,
+                height: SQUARE_SIZE,
+                top: top + MALL_TILE_SIZE / 2 - SQUARE_SIZE,
+                left: left,
+            };
+        }
     }
 
     private isPlayPhase() {

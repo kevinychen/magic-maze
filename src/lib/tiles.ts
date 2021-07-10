@@ -2,7 +2,7 @@ import { MallTile, TilePlacement, UnplacedMallTile } from "./types";
 
 export function placeTile(tile: UnplacedMallTile, tilePlacement: TilePlacement): MallTile {
     let { squares, entranceDir, exploreDirs, escalators } = tile;
-    let { row, col, dir } = tilePlacement;
+    const { row, col, dir } = tilePlacement;
 
     for (let i = 0; i < dir; i++) {
         const newSquares = new Array(4);

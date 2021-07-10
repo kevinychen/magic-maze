@@ -2,7 +2,7 @@ import { Ctx } from "boardgame.io";
 import { intersectionWith, isEqual, range, some } from 'lodash';
 import { ACTION_TILES, MALL_TILES, SCENARIOS } from "./data";
 import { placeTile } from "./tiles";
-import { Action, Color, GameConfig, GameState, Location, Square, TilePlacement, Wall } from "./types";
+import { Action, Color, ExplorableArea, GameConfig, GameState, Location, Square, TilePlacement, Wall } from "./types";
 
 const DIRS = [{ drow: -1, dcol: 0 }, { drow: 0, dcol: 1 }, { drow: 1, dcol: 0 }, { drow: 0, dcol: -1 }];
 const EXPLORE_LOCATIONS = [{ row: 0, col: 2 }, { row: 2, col: 3 }, { row: 3, col: 1 }, { row: 1, col: 0 }];
@@ -143,7 +143,7 @@ export function getPossibleDestinations(G: GameState, playerID: string | null | 
     return possibleDestinations;
 }
 
-export function getExplorableAreas(G: GameState): TilePlacement[] {
+export function getExplorableAreas(G: GameState): ExplorableArea[] {
     const { numCrystalBallUses, pawnLocations, placedTiles, unplacedMallTileIds, usedObjects } = G;
     if (unplacedMallTileIds.length === 0) {
         return [];
@@ -161,7 +161,7 @@ export function getExplorableAreas(G: GameState): TilePlacement[] {
     if (numCameras >= 2) {
         return [];
     }
-    const explorableAreas: TilePlacement[] = [];
+    const explorableAreas: ExplorableArea[] = [];
     const [newTileId] = unplacedMallTileIds.slice(-1);
     for (const [tileId, { row, col, exploreDirs }] of Object.entries(placedTiles)) {
         for (let dir = 0; dir < 4; dir++) {
@@ -173,7 +173,14 @@ export function getExplorableAreas(G: GameState): TilePlacement[] {
             const { row: localRow, col: localCol } = EXPLORE_LOCATIONS[dir];
             if ((isEqual(pawnLocations[explorePawn], { tileId, localRow, localCol }) || numCrystalBallUses >= 1)
                 && !Object.values(placedTiles).some(tile => tile.row === row + drow && tile.col === col + dcol)) {
-                explorableAreas.push({ row: row + drow, col: col + dcol, dir: (dir - MALL_TILES[newTileId].entranceDir! + 6) % 4 });
+                explorableAreas.push({
+                    exploreRow: row,
+                    exploreCol: col,
+                    exploreDir: dir,
+                    row: row + drow,
+                    col: col + dcol,
+                    dir: (dir - MALL_TILES[newTileId].entranceDir! + 6) % 4,
+                });
             }
         }
     }

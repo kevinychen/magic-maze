@@ -35,6 +35,8 @@ export interface TilePlacement {
     dir: number;
 }
 
+export type ExplorableArea = TilePlacement & { exploreRow: number, exploreCol: number, exploreDir: number };
+
 export type MallTile = UnplacedMallTile & TilePlacement;
 
 export interface ActionTile {
@@ -74,7 +76,7 @@ export interface GameState {
     config: GameConfig;
     numCrystalBallUses: number;
     doSomethingPawn?: { playerID: string, byPlayerID: string, atTime: number };
-    explorableAreas: TilePlacement[];
+    explorableAreas: ExplorableArea[];
     pawnLocations: Location[];
     placedTiles: { [tileId: string]: MallTile };
     unplacedMallTileIds: string[];
