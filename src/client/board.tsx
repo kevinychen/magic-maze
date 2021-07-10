@@ -2,7 +2,7 @@ import { BoardProps } from 'boardgame.io/react';
 import { intersectionWith, isEqual, range } from 'lodash';
 import React from 'react';
 import { PanZoom } from 'react-easy-panzoom'
-import { canExplore, getExplorableAreas, getPossibleDestinations, getSquare } from '../lib/game';
+import { getExplorableAreas, getPossibleDestinations, getSquare } from '../lib/game';
 import { Color, ExplorableArea, GameState, Location, TilePlacement } from '../lib/types';
 import { Alert } from './alert';
 import { Clock } from './clock';
@@ -26,6 +26,7 @@ interface State {
     selectedPawn?: Color;
     possibleDestinations: Location[];
     currentlyExplorableAreas: ExplorableArea[];
+    currentExplorableArea?: ExplorableArea;
 }
 
 export class Board extends React.Component<BoardProps<GameState>, State> {
@@ -45,15 +46,18 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
 
     componentDidUpdate() {
         const { G, playerID } = this.props;
-        const { selectedPawn, possibleDestinations, currentlyExplorableAreas } = this.state;
+        const { selectedPawn, possibleDestinations, currentlyExplorableAreas, currentExplorableArea } = this.state;
 
         const newState: State = {
             possibleDestinations: selectedPawn === undefined ? [] : getPossibleDestinations(G, playerID, selectedPawn),
-            currentlyExplorableAreas: getExplorableAreas(G),
+            currentlyExplorableAreas: getExplorableAreas(G, playerID),
         };
         if (!isEqual(possibleDestinations, newState.possibleDestinations)
             || !isEqual(currentlyExplorableAreas, newState.currentlyExplorableAreas)) {
             this.setState(newState);
+        }
+        if (!this.isPlayPhase() && currentExplorableArea !== undefined) {
+            this.setState({ currentExplorableArea: undefined });
         }
     }
 
@@ -80,8 +84,8 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
     }
 
     renderGame() {
-        const { G: { explorableAreas, pawnLocations, placedTiles, unplacedMallTileIds, usedObjects }, moves } = this.props;
-        const { selectedPawn, possibleDestinations, currentlyExplorableAreas } = this.state;
+        const { G: { pawnLocations, placedTiles, usedObjects }, moves } = this.props;
+        const { selectedPawn, possibleDestinations } = this.state;
         return <PanZoom
             className="game"
             disableDoubleClickZoom={true}
@@ -95,9 +99,8 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
             maxZoom={5}
         >
             {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile, true))}
-            {intersectionWith(explorableAreas, currentlyExplorableAreas, isEqual)
-                .map(exploreArea => this.renderMallTile(unplacedMallTileIds.slice(-1)[0], exploreArea, false))}
             {this.maybeRenderExplorableAreas()}
+            {this.maybeRenderCurrentExplorableArea()}
             {usedObjects.map((loc, i) => <img
                 key={i}
                 className="object"
@@ -121,12 +124,11 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
     }
 
     renderMallTile(tileId: string, tilePlacement: TilePlacement, placed: boolean) {
-        const { G, moves, playerID } = this.props;
+        const { moves } = this.props;
         const { row, col, dir } = tilePlacement;
-        const canFinishExplore = canExplore(G, playerID) && !placed;
         return <img
             key={tileId}
-            className={`object ${placed ? 'placed' : 'unplaced'} ${canFinishExplore ? 'explorable' : ''}`}
+            className={`object ${placed ? 'placed' : 'unplaced'} ${placed ? '' : 'explorable'}`}
             src={`./tiles/tile${tileId}.jpg`}
             alt={`Tile ${tileId}`}
             style={{
@@ -135,32 +137,50 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                 transform: `rotate(${dir * 90}deg)`,
                 transformOrigin: "center",
             }}
-            onClick={canFinishExplore && this.isPlayPhase() ? () => moves.finishExplore(tilePlacement) : undefined}
+            onClick={placed ? undefined : () => {
+                this.setState({ currentExplorableArea: undefined });
+                moves.finishExplore(tilePlacement);
+            }}
         />;
     }
 
     maybeRenderExplorableAreas() {
-        const { G, playerID, moves } = this.props;
-        const { currentlyExplorableAreas } = this.state;
-        const { explorableAreas } = G;
-        if (explorableAreas.length > 0 || currentlyExplorableAreas.length === 0 || !canExplore(G, playerID)) {
+        const { G: { explorableAreas }, moves } = this.props;
+        let { currentlyExplorableAreas } = this.state;
+        if (!this.isPlayPhase()) {
             return null;
+        }
+        if (explorableAreas.length > 0) {
+            currentlyExplorableAreas = intersectionWith(currentlyExplorableAreas, explorableAreas, isEqual);
         }
         return currentlyExplorableAreas.map((explorableArea, i) => {
             return <span
                 key={i}
                 className="object destination"
                 style={this.getExplorableAreaStyle(explorableArea)}
-                onClick={this.isPlayPhase() ? () => moves.startExplore() : undefined}
+                onClick={() => {
+                    this.setState({ currentExplorableArea: explorableArea });
+                    if (explorableAreas.length === 0) {
+                        moves.startExplore();
+                    }
+                }}
             />;
         });
     }
 
+    maybeRenderCurrentExplorableArea() {
+        const { G } = this.props;
+        const { currentExplorableArea } = this.state;
+        const { unplacedMallTileIds } = G;
+        if (!this.isPlayPhase() || currentExplorableArea === undefined || unplacedMallTileIds.length === 0) {
+            return null;
+        }
+        return this.renderMallTile(unplacedMallTileIds.slice(-1)[0], currentExplorableArea, false);
+    }
+
     renderInfo() {
-        const { G, moves, playerID } = this.props;
-        const { clock: { numMillisLeft, atTime, frozen }, explorableAreas, unplacedMallTileIds, vortexSystemEnabled } = G;
-        const { currentlyExplorableAreas } = this.state;
-        const canStartExplore = canExplore(G, playerID) && explorableAreas.length === 0 && currentlyExplorableAreas.length > 0;
+        const { G, moves } = this.props;
+        const { clock: { numMillisLeft, atTime, frozen }, unplacedMallTileIds, vortexSystemEnabled } = G;
         const weapons: Color[] = vortexSystemEnabled
             ? range(4).filter(i => getSquare(G, i).weapon === i)
             : range(4).filter(i => getSquare(G, i).exit !== i);
@@ -175,10 +195,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                     timesUp={() => moves.sync()}
                 />
             </span>
-            <span
-                className={`section explore ${canStartExplore ? 'enabled' : 'disabled'}`}
-                onClick={canStartExplore && this.isPlayPhase() ? () => moves.startExplore() : undefined}
-            >
+            <span className={"section explore"}>
                 {`🔍 x${unplacedMallTileIds.length}`}
             </span>
             {weapons.length === 0

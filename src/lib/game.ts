@@ -1,5 +1,5 @@
 import { Ctx } from "boardgame.io";
-import { intersectionWith, isEqual, range, some } from 'lodash';
+import { findKey, intersectionWith, isEqual, range, some } from 'lodash';
 import { ACTION_TILES, MALL_TILES, SCENARIOS } from "./data";
 import { placeTile } from "./tiles";
 import { Action, Color, ExplorableArea, GameConfig, GameState, Location, Square, TilePlacement, Wall } from "./types";
@@ -143,9 +143,9 @@ export function getPossibleDestinations(G: GameState, playerID: string | null | 
     return possibleDestinations;
 }
 
-export function getExplorableAreas(G: GameState): ExplorableArea[] {
-    const { numCrystalBallUses, pawnLocations, placedTiles, unplacedMallTileIds, usedObjects } = G;
-    if (unplacedMallTileIds.length === 0) {
+export function getExplorableAreas(G: GameState, playerID: string | null | undefined): ExplorableArea[] {
+    const { actionTiles, numCrystalBallUses, pawnLocations, placedTiles, unplacedMallTileIds, usedObjects } = G;
+    if (unplacedMallTileIds.length === 0 || playerID === undefined || playerID === null || !actionTiles[playerID].actions.includes(Action.EXPLORE)) {
         return [];
     }
     let numCameras = 0;
@@ -185,10 +185,6 @@ export function getExplorableAreas(G: GameState): ExplorableArea[] {
         }
     }
     return explorableAreas;
-}
-
-export function canExplore({ actionTiles }: GameState, playerID: string | null | undefined): boolean {
-    return playerID !== undefined && playerID !== null && actionTiles[playerID].actions.includes(Action.EXPLORE);
 }
 
 export const Name = "magic-maze";
@@ -267,7 +263,8 @@ export const Game = {
             pawnLocations[pawn] = newLocation;
 
             // Can't move pawn away if in the middle of exploring
-            if (explorableAreas.length > 0 && getExplorableAreas(G).length === 0) {
+            const exploringPlayerID = findKey(actionTiles, tile => tile.actions.includes(Action.EXPLORE));
+            if (explorableAreas.length > 0 && !some(intersectionWith(explorableAreas, getExplorableAreas(G, exploringPlayerID), isEqual))) {
                 return INVALID_MOVE;
             }
 
@@ -301,13 +298,10 @@ export const Game = {
         startExplore: (G: GameState, ctx: Ctx) => {
             const { explorableAreas } = G;
             const { playerID } = ctx;
-            if (!canExplore(G, playerID)) {
-                return INVALID_MOVE;
-            }
             if (explorableAreas.length > 0) {
                 return INVALID_MOVE;
             }
-            const newExplorableAreas = getExplorableAreas(G);
+            const newExplorableAreas = getExplorableAreas(G, playerID);
             if (newExplorableAreas.length === 0) {
                 return INVALID_MOVE;
             }
@@ -316,10 +310,7 @@ export const Game = {
         finishExplore: (G: GameState, ctx: Ctx, tilePlacement: TilePlacement) => {
             const { explorableAreas, numCrystalBallUses, placedTiles, unplacedMallTileIds } = G;
             const { playerID } = ctx;
-            if (!canExplore(G, playerID)) {
-                return INVALID_MOVE;
-            }
-            if (!some(intersectionWith(explorableAreas, getExplorableAreas(G), isEqual), tilePlacement)) {
+            if (!some(intersectionWith(explorableAreas, getExplorableAreas(G, playerID), isEqual), tilePlacement)) {
                 return INVALID_MOVE;
             }
             const newTileId = unplacedMallTileIds.pop()!;

@@ -38,7 +38,7 @@ body {
 }
 
 .game .unplaced {
-    opacity: 0.2;
+    opacity: 0.3;
 }
 
 .game .explorable {
@@ -91,17 +91,6 @@ body {
 
 .info .section.explore {
     padding: 0px 5px;
-    cursor: pointer;
-}
-
-.info .section.explore.disabled:hover {
-    background-color: #ff8888;
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-.info .section.explore.enabled:hover {
-    background-color: lightgreen;
 }
 
 .info .weapon {
