@@ -1,12 +1,14 @@
 import { BoardProps } from 'boardgame.io/react';
 import { intersectionWith, isEqual, range } from 'lodash';
 import React from 'react';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { PanZoom } from 'react-easy-panzoom'
+import { animated, useSpring } from 'react-spring';
 import { atExit, canExplore, getExplorableAreas, getPossibleDestinations, getSquare } from '../lib/game';
 import { Color, ExplorableArea, GameState, Location, TilePlacement } from '../lib/types';
 import { Alert } from './alert';
 import { Clock } from './clock';
-import { Pawn } from './pawn';
 import { Sidebar } from './sidebar';
 import './board.css';
 import { ConfigPanel } from './configPanel';
@@ -93,29 +95,31 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
             }}
             minZoom={0.1}
             maxZoom={5}
+            preventPan={event => (event.target as any).draggable}
         >
-            {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile, true))}
-            {this.maybeRenderExplorableAreas()}
-            {this.maybeRenderCurrentExplorableArea()}
-            {usedObjects.map((loc, i) => <img
-                key={i}
-                className="object"
-                style={this.getPositionStyle(loc, SQUARE_SIZE)}
-                src="./used.png"
-                alt="used"
-            />)}
-            {pawnLocations.map((pawnLocation, pawn) => <Pawn
-                color={COLORS[pawn as Color]}
-                selected={selectedPawn === pawn}
-                onClick={() => this.setState({ selectedPawn: selectedPawn === pawn ? undefined : pawn })}
-                {...this.getPositionStyle(pawnLocation, PAWN_SIZE)}
-            />)}
-            {possibleDestinations.map((loc, i) => <span
-                key={i}
-                className="object destination"
-                style={this.getPositionStyle(loc, SQUARE_SIZE)}
-                onClick={this.isPlayPhase() ? () => moves.movePawn(selectedPawn, loc) : undefined}
-            />)}
+            <DndProvider backend={HTML5Backend}>
+                {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile, true))}
+                {this.maybeRenderExplorableAreas()}
+                {this.maybeRenderCurrentExplorableArea()}
+                {usedObjects.map((loc, i) => <img
+                    key={i}
+                    className="object"
+                    style={this.getPositionStyle(loc, SQUARE_SIZE)}
+                    src="./used.png"
+                    alt="used"
+                />)}
+                {pawnLocations.map((pawnLocation, pawn) => <Pawn
+                    index={pawn}
+                    selected={selectedPawn === pawn}
+                    onClick={() => this.setState({ selectedPawn: selectedPawn === pawn ? undefined : pawn })}
+                    {...this.getPositionStyle(pawnLocation, PAWN_SIZE)}
+                />)}
+                {possibleDestinations.map((loc, i) => <Destination
+                    index={i}
+                    onClick={this.isPlayPhase() ? () => moves.movePawn(selectedPawn, loc) : undefined}
+                    {...this.getPositionStyle(loc, SQUARE_SIZE)}
+                />)}
+            </DndProvider>
         </PanZoom>;
     }
 
@@ -147,14 +151,11 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
         if (explorableAreas.length > 0) {
             currentlyExplorableAreas = intersectionWith(currentlyExplorableAreas, explorableAreas, isEqual);
         }
-        return currentlyExplorableAreas.map((explorableArea, i) => {
-            return <span
-                key={i}
-                className="object destination"
-                style={this.getExplorableAreaStyle(explorableArea)}
-                onClick={() => moves.startExplore(explorableArea)}
-            />;
-        });
+        return currentlyExplorableAreas.map((explorableArea, i) => <Destination
+            index={i}
+            onClick={() => moves.startExplore(explorableArea)}
+            {...this.getExplorableAreaStyle(explorableArea)}
+        />);
     }
 
     maybeRenderCurrentExplorableArea() {
@@ -239,8 +240,10 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                 width: depth,
                 height: SQUARE_SIZE,
                 top: top + MALL_TILE_SIZE / 2 - SQUARE_SIZE,
-                left: left,
+                left,
             };
+        } else {
+            throw new Error();
         }
     }
 
@@ -248,4 +251,62 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
         const { ctx: { phase } } = this.props;
         return phase === 'play';
     }
+}
+
+function Pawn(props: {
+    index: number,
+    width: number,
+    height: number,
+    top: number,
+    left: number,
+    selected: boolean,
+    onClick: () => void,
+}) {
+    const { index, width, height, top, left, selected, onClick } = props;
+    const { top: animatedTop, left: animatedLeft } = useSpring({ top, left });
+    const color = COLORS[index as Color];
+    const drag = useDrag(() => ({
+        type: 'pawn',
+        item: () => {
+            onClick();
+            return { index };
+        },
+        collect: _ => ({}),
+    }))[1];
+    return <animated.img
+        ref={drag}
+        key={color}
+        className={`object pawn ${selected ? 'selected' : ''}`}
+        style={{
+            width,
+            height,
+            top: animatedTop,
+            left: animatedLeft,
+        }}
+        src={`./weapons/${color}.png`}
+        alt={`${color} pawn`}
+        onClick={onClick}
+    />;
+}
+
+function Destination(props: {
+    index: number,
+    width: number,
+    height: number,
+    top: number,
+    left: number,
+    onClick?: () => void,
+}) {
+    const { index, width, height, top, left, onClick } = props;
+    const drop = useDrop(() => ({
+        accept: 'pawn',
+        drop: onClick,
+    }), [index, onClick])[1];
+    return <div
+        ref={drop}
+        key={index}
+        className="object destination"
+        style={{ width, height, top, left }}
+        onClick={onClick}
+    />;
 }

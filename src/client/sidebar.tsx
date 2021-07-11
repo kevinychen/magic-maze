@@ -51,7 +51,7 @@ export class Sidebar extends React.Component<BoardProps, State> {
         const { ctx: { numPlayers, playOrder }, playerID } = this.props;
         return <div className="sidebar" ref={el => this.el = el}>
             <div className="title">MAGIC MAZE</div>
-            {range(numPlayers).map(i => this.renderPlayer(playOrder[(playOrder.indexOf(playerID!) + i) % numPlayers]))}
+            {range(numPlayers).map(i => this.renderPlayer(playOrder[(playOrder.indexOf(playerID!) + i + numPlayers) % numPlayers]))}
         </div>;
     }
 
