@@ -103,7 +103,7 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action
 }
 
 export function getPossibleDestinations(G: GameState, playerID: string | null | undefined, pawn: Color): Location[] {
-    const { actionTiles, pawnLocations, placedTiles, vortexSystemEnabled } = G;
+    const { actionTiles, pawnLocations, placedTiles, usedObjects, vortexSystemEnabled } = G;
     const possibleDestinations: Location[] = [];
     if (playerID !== undefined && playerID !== null) {
         const actions = actionTiles[playerID].actions;
@@ -140,19 +140,6 @@ export function getPossibleDestinations(G: GameState, playerID: string | null | 
             }
         }
     }
-    return possibleDestinations;
-}
-
-export function canExplore(G: GameState, playerID: string | null | undefined) {
-    const { actionTiles } = G;
-    return playerID !== undefined && playerID !== null && actionTiles[playerID].actions.includes(Action.EXPLORE);
-}
-
-export function getExplorableAreas(G: GameState, playerID: string | null | undefined): ExplorableArea[] {
-    const { numCrystalBallUses, pawnLocations, placedTiles, unplacedMallTileIds, usedObjects } = G;
-    if (unplacedMallTileIds.length === 0 || !canExplore(G, playerID)) {
-        return [];
-    }
     let numCameras = 0;
     for (const [tileId, { squares }] of Object.entries(placedTiles)) {
         for (let row = 0; row < 4; row++) {
@@ -163,7 +150,18 @@ export function getExplorableAreas(G: GameState, playerID: string | null | undef
             }
         }
     }
-    if (numCameras >= 2) {
+    return possibleDestinations.filter(({ tileId, localRow, localCol }) =>
+        numCameras < 2 || !placedTiles[tileId].squares[localRow][localCol].timer);
+}
+
+export function canExplore(G: GameState, playerID: string | null | undefined) {
+    const { actionTiles } = G;
+    return playerID !== undefined && playerID !== null && actionTiles[playerID].actions.includes(Action.EXPLORE);
+}
+
+export function getExplorableAreas(G: GameState, playerID: string | null | undefined): ExplorableArea[] {
+    const { numCrystalBallUses, pawnLocations, placedTiles, unplacedMallTileIds } = G;
+    if (unplacedMallTileIds.length === 0 || !canExplore(G, playerID)) {
         return [];
     }
     const explorableAreas: ExplorableArea[] = [];
