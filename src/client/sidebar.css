@@ -13,7 +13,25 @@
 }
 
 .sidebar .player {
-    margin: 10px;
+    margin: 5px;
+    padding: 5px;
+}
+
+.sidebar .player.me {
+    margin: 4px;
+    padding: 4px;
+    border: 2px solid black;
+    border-radius: 4px;
+    position: relative;
+}
+
+.sidebar .player.me .tag {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    font-size: 16px;
+    -webkit-text-stroke: 1px #3c1049;
+    color: yellow;
 }
 
 .sidebar .action {

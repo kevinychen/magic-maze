@@ -74,7 +74,7 @@ export class Sidebar extends React.Component<BoardProps, State> {
         const isShaking = alertedPlayerIDs[playerID];
         return <div
             key={playerID}
-            className="player"
+            className={`player ${playerID === myPlayerID ? 'me' : ''}`}
             style={{
                 height: `${Math.min((height - 72) / numPlayers - 10, 120)}px`,
             }}
@@ -85,7 +85,7 @@ export class Sidebar extends React.Component<BoardProps, State> {
                 alt=''
             />
             <div className="player-info">
-                {playerID === myPlayerID ? "ME" : playerName}
+                {playerName}
                 <br />
                 <img
                     className={`alert ${isShaking ? 'shake' : ''}`}
@@ -94,6 +94,7 @@ export class Sidebar extends React.Component<BoardProps, State> {
                     onClick={isShaking || phase !== 'play' ? undefined : () => moves.moveDoSomethingPawn(playerID)}
                 />
             </div>
+            {playerID === myPlayerID ? <div className="tag">(You)</div> : undefined}
         </div>;
     }
 }
