@@ -23,12 +23,16 @@
     padding: 5px;
 }
 
-.leave-button {
+.sound-button {
     left: 5px;
 }
 
+.leave-button {
+    left: 45px;
+}
+
 .restart-button {
-    left: 75px;
+    left: 115px;
 }
 
 .toggle-button {

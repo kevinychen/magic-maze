@@ -1,11 +1,12 @@
 import React from 'react';
+import { LobbyAPI } from 'boardgame.io';
 import { LobbyClient } from 'boardgame.io/client';
 import { SocketIO } from 'boardgame.io/multiplayer';
 import { Client } from 'boardgame.io/react';
 import { Game, MaxPlayers, MinPlayers, Name } from '../lib/game';
+import { AudioController } from './audio';
 import { Board } from './board';
 import './lobby.css';
-import { LobbyAPI } from 'boardgame.io';
 
 const SERVER = process.env.REACT_APP_PROXY || document.location.toString().replace(/\/$/, '');
 const NAME_KEY = 'name';
@@ -46,6 +47,11 @@ export default class WrappedLobby extends React.Component<{}, State> {
 
     componentDidMount() {
         this.refreshLobbyState();
+        document.addEventListener('click', AudioController.getInstance().start);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('click', AudioController.getInstance().start);
     }
 
     refreshLobbyState = async () => {
@@ -101,6 +107,7 @@ export default class WrappedLobby extends React.Component<{}, State> {
                     alt="Leave"
                     onClick={() => this.leaveMatch().then(this.refreshLobbyState)}
                 />
+                {this.renderSoundToggle()}
             </div>;
         }
         const lobby = name === null
@@ -140,6 +147,7 @@ export default class WrappedLobby extends React.Component<{}, State> {
                 <img src='./title.png' alt='Magic Maze' />
             </div>
             {lobby}
+            {this.renderSoundToggle()}
         </div>;
     }
 
@@ -221,6 +229,15 @@ export default class WrappedLobby extends React.Component<{}, State> {
             <td>{status}</td>
             <td>{buttons}</td>
         </tr>;
+    }
+
+    renderSoundToggle() {
+        return <img
+            className="sound-button toggle-button"
+            src="./sound.png"
+            alt="Sound"
+            onClick={AudioController.getInstance().toggleSound}
+        />
     }
 
     setName = () => {

@@ -8,10 +8,11 @@ import { animated, useSpring } from 'react-spring';
 import { atExit, canExplore, getExplorableAreas, getPossibleDestinations, getSquare } from '../lib/game';
 import { Color, ExplorableArea, GameState, Location, TilePlacement } from '../lib/types';
 import { Alert } from './alert';
+import { AudioController, Phase } from './audio';
 import { Clock } from './clock';
+import { ConfigPanel } from './configPanel';
 import { Sidebar } from './sidebar';
 import './board.css';
-import { ConfigPanel } from './configPanel';
 
 const MALL_TILE_SIZE = 555;
 const SQUARE_SIZE = 118;
@@ -47,6 +48,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
 
     componentDidUpdate() {
         const { G, playerID } = this.props;
+        const { vortexSystemEnabled } = G;
         const { selectedPawn, possibleDestinations, currentlyExplorableAreas } = this.state;
 
         const newState: State = {
@@ -57,6 +59,8 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
             || !isEqual(currentlyExplorableAreas, newState.currentlyExplorableAreas)) {
             this.setState(newState);
         }
+
+        AudioController.getInstance().setPhase(this.isPlayPhase() && !vortexSystemEnabled ? Phase.EXIT : Phase.INTRO);
     }
 
     render() {
@@ -109,6 +113,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                     alt="used"
                 />)}
                 {pawnLocations.map((pawnLocation, pawn) => <Pawn
+                    key={pawn}
                     index={pawn}
                     selected={selectedPawn === pawn}
                     onClick={() => this.setState({ selectedPawn: selectedPawn === pawn ? undefined : pawn })}
@@ -275,7 +280,6 @@ function Pawn(props: {
     }))[1];
     return <animated.img
         ref={drag}
-        key={color}
         className={`object pawn ${selected ? 'selected' : ''}`}
         style={{
             width,

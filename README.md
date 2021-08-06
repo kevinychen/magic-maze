@@ -27,6 +27,7 @@ Then go to http://localhost:9100.
 ## Credits
 
 - [Shanky Panky's TTS mod](https://steamcommunity.com/sharedfiles/filedetails/?id=1113582696) for image assets
+- [陽菜/Hina & Chosic](https://www.chosic.com/free-music/all/?keyword=%E9%99%BD%E8%8F%9C/Hina&artist) for background music
 - [ashugeo](https://github.com/ashugeo/magic-maze) for design inspiration
 - [Fonts Geek](https://fontsgeek.com/fonts/Maiandra-Black-Regular) for the Maiandra font
 - [boardgame.io](https://boardgame.io/), a very convenient framework for producing online multiplayer games
