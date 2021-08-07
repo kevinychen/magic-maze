@@ -50,7 +50,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
 
     componentDidUpdate() {
         const { G, playerID } = this.props;
-        const { vortexSystemEnabled } = G;
+        const { equipmentStolen } = G;
         const { selectedPawn, possibleDestinations, currentlyExplorableAreas, discardableTiles } = this.state;
 
         const newState: State = {
@@ -64,7 +64,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
             this.setState(newState);
         }
 
-        AudioController.getInstance().setPhase(this.isPlayPhase() && !vortexSystemEnabled ? Phase.EXIT : Phase.INTRO);
+        AudioController.getInstance().setPhase(this.isPlayPhase() && equipmentStolen ? Phase.EXIT : Phase.INTRO);
     }
 
     render() {
@@ -191,10 +191,10 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
 
     renderInfo() {
         const { G, moves } = this.props;
-        const { clock: { numMillisLeft, atTime, frozen }, unplacedMallTileIds, vortexSystemEnabled } = G;
-        const weapons: Color[] = vortexSystemEnabled
-            ? range(4).filter(i => atWeapon(G, i))
-            : range(4).filter(i => !atExit(G, i));
+        const { clock: { numMillisLeft, atTime, frozen }, equipmentStolen, unplacedMallTileIds } = G;
+        const weapons: Color[] = equipmentStolen
+            ? range(4).filter(i => !atExit(G, i))
+            : range(4).filter(i => atWeapon(G, i));
         return <div
             className="info"
         >

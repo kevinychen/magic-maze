@@ -81,6 +81,7 @@ export interface GameState {
     clock: { numMillisLeft: number, atTime: number, frozen: boolean };
     config: GameConfig;
     doSomethingPawn?: { playerID: string, byPlayerID: string, atTime: number };
+    equipmentStolen: boolean;
     explorableAreas: ExplorableArea[];
     exploringArea?: ExplorableArea;
     numCrystalBallUses: number;
@@ -89,5 +90,4 @@ export interface GameState {
     rearrangementModeDiscards: number;
     unplacedMallTileIds: string[];
     usedObjects: Location[];
-    vortexSystemEnabled: boolean;
 }

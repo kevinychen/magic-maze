@@ -63,7 +63,7 @@ export class Sidebar extends React.Component<BoardProps, State> {
 
     private renderPlayer(playerID: string) {
         const {
-            G: { actionTiles, vortexSystemEnabled },
+            G: { actionTiles, config: { vortexOutOfService }, equipmentStolen },
             ctx: { numPlayers, playOrder },
             matchData,
             playerID: myPlayerID,
@@ -79,7 +79,7 @@ export class Sidebar extends React.Component<BoardProps, State> {
         >
             <img
                 className="action"
-                src={`./actions/${vortexSystemEnabled ? 'normal' : 'flip'}${actionTiles[playerID].id}.jpg`}
+                src={`./actions/${equipmentStolen || vortexOutOfService ? 'flip' : 'normal'}${actionTiles[playerID].id}.jpg`}
                 alt=''
             />
             <div className="player-info">

@@ -22,9 +22,11 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
             remainingMallTileIds,
             divination,
             followTheLeader,
+            noDoSomethingPawn,
             rearrangementMode,
             skipPassingActions,
             trickTheGuards,
+            vortexOutOfService,
         } = config;
 
         return <div className="config-panel">
@@ -92,6 +94,20 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
                     { value: false, humanReadableValue: 'no' },
                     { value: true, humanReadableValue: 'yes' },
                 ], rearrangementMode || false)}
+            </div>
+            <div className="field">
+                {'Allow "Do Something!" pawn: '}
+                {this.renderChoices('noDoSomethingPawn', [
+                    { value: false, humanReadableValue: 'yes' },
+                    { value: true, humanReadableValue: 'no' },
+                ], noDoSomethingPawn || false)}
+            </div>
+            <div className="field">
+                {'Enable vortex system: '}
+                {this.renderChoices('vortexOutOfService', [
+                    { value: false, humanReadableValue: 'yes' },
+                    { value: true, humanReadableValue: 'no' },
+                ], vortexOutOfService || false)}
             </div>
             <button
                 className="start"

@@ -37,6 +37,7 @@ function setup(ctx: Ctx, config: GameConfig): GameState | undefined {
         actionTiles: Object.fromEntries(random!.Shuffle(actionTiles).map((tile, i) => [i, tile])),
         clock: { numMillisLeft: TIMER_MILLIS, atTime: Date.now(), frozen: true },
         config,
+        equipmentStolen: false,
         explorableAreas: [],
         numCrystalBallUses: 0,
         pawnLocations: random!.Shuffle([[1, 1], [1, 2], [2, 1], [2, 2]])
@@ -45,7 +46,6 @@ function setup(ctx: Ctx, config: GameConfig): GameState | undefined {
         rearrangementModeDiscards: 0,
         unplacedMallTileIds: [...random!.Shuffle(remainingMallTileIds), ...(topMallTileIds || [])],
         usedObjects: [],
-        vortexSystemEnabled: true,
     };
 }
 
@@ -149,7 +149,15 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action
 }
 
 export function getPossibleDestinations(G: GameState, playerID: string | null | undefined, pawn: Color): Location[] {
-    const { actionTiles, pawnLocations, placedTiles, rearrangementModeDiscards, usedObjects, vortexSystemEnabled } = G;
+    const {
+        actionTiles,
+        config: { vortexOutOfService },
+        equipmentStolen,
+        pawnLocations,
+        placedTiles,
+        rearrangementModeDiscards,
+        usedObjects,
+    } = G;
     if (playerID === undefined || playerID === null || rearrangementModeDiscards > 0) {
         return [];
     }
@@ -170,7 +178,7 @@ export function getPossibleDestinations(G: GameState, playerID: string | null | 
             if (newLocation !== undefined) {
                 possibleDestinations.push(newLocation);
             }
-        } else if (action === Action.VORTEX && vortexSystemEnabled) {
+        } else if (action === Action.VORTEX && !equipmentStolen && !vortexOutOfService) {
             for (const tileId in placedTiles) {
                 const { squares } = placedTiles[tileId];
                 for (let localRow = 0; localRow < 4; localRow++) {
@@ -313,10 +321,10 @@ export const Game = {
 
         play: {
             endIf: (G: GameState) => {
-                const { clock: { numMillisLeft }, rearrangementModeDiscards, vortexSystemEnabled } = G;
+                const { clock: { numMillisLeft }, equipmentStolen, rearrangementModeDiscards } = G;
                 return numMillisLeft <= 0
                     || (rearrangementModeDiscards > 0 && getDiscardableTiles(G).length === 0)
-                    || (!vortexSystemEnabled && range(4).every(i => atExit(G, i)));
+                    || (equipmentStolen && range(4).every(i => atExit(G, i)));
             },
             onEnd: (G: GameState) => {
                 const { clock: { numMillisLeft, atTime }, config } = G;
@@ -388,7 +396,7 @@ export const Game = {
             }
 
             if (range(4).every(i => atWeapon(G, i))) {
-                G.vortexSystemEnabled = false;
+                G.equipmentStolen = true;
             }
 
             if (getSquare(G, pawn).crystal === pawn && !some(usedObjects, pawnLocations[pawn])) {
