@@ -164,11 +164,11 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
     }
 
     maybeRenderCurrentExplorableArea() {
-        const { G: { exploringArea, unplacedMallTileIds } } = this.props;
-        if (!this.isPlayPhase() || exploringArea === undefined || unplacedMallTileIds.length === 0) {
+        const { G: { exploringArea } } = this.props;
+        if (!this.isPlayPhase() || exploringArea === undefined) {
             return null;
         }
-        return this.renderMallTile(unplacedMallTileIds.slice(-1)[0], exploringArea, false);
+        return this.renderMallTile(exploringArea.tileId, exploringArea, false);
     }
 
     renderInfo() {
@@ -189,7 +189,10 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                 />
             </span>
             <span className={"section explore"}>
-                {`🔍 x${unplacedMallTileIds.length}`}
+                <span className={"top-unplaced"}>
+                    {this.renderTopUnplacedTile()}
+                </span>
+                {`x${unplacedMallTileIds.length}`}
             </span>
             {weapons.length === 0
                 ? undefined
@@ -202,6 +205,30 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                     />)}
                 </span>}
         </div>;
+    }
+
+    renderTopUnplacedTile() {
+        const { G: { config: { divination }, unplacedMallTileIds } } = this.props;
+        if (!divination || unplacedMallTileIds.length === 0) {
+            return <img
+                className="base"
+                src="./back.jpg"
+                alt="Tile back"
+            />;
+        }
+        const tileId = unplacedMallTileIds.slice(-1)[0];
+        return <>
+            <img
+                className="base"
+                src={`./tiles/tile${tileId}.jpg`}
+                alt={`Tile ${tileId}`}
+            />
+            <img
+                className="magnified"
+                src={`./tiles/tile${tileId}.jpg`}
+                alt={`Tile ${tileId}`}
+            />
+        </>;
     }
 
     private getPositionStyle({ tileId, localRow, localCol }: Location, size: number) {

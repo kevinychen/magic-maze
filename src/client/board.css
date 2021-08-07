@@ -77,6 +77,12 @@ body {
     top: 10px;
 }
 
+.info img {
+    height: 38px;
+    margin-bottom: -7px;
+    border-radius: 2px;
+}
+
 .info .section {
     border: 3px solid #8675af;
     border-radius: 5px;
@@ -93,7 +99,28 @@ body {
     padding: 0px 5px;
 }
 
-.info .weapon {
-    height: 39px;
-    margin-bottom: -7.5px;
+.info .top-unplaced {
+    position: relative;
+}
+
+.info .top-unplaced .base {
+    margin-right: 5px;
+    height: 32px;
+    margin-bottom: -5px;
+    border: 1px solid black;
+}
+
+.info .top-unplaced .magnified {
+    display: none;
+    position: absolute;
+    height: 256px;
+    left: -112px;
+    top: 44px;
+}
+
+.info .top-unplaced:hover .magnified {
+    display: block;
+    float: left;
+    border: 2px solid black;
+    border-radius: 10px;
 }

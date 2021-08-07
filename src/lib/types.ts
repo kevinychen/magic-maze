@@ -36,6 +36,7 @@ export interface TilePlacement {
 }
 
 export type ExplorableArea = TilePlacement & {
+    tileId: string,
     exploreRow: number,
     exploreCol: number,
     exploreDir: number,

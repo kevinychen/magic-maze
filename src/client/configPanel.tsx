@@ -15,7 +15,7 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
 
     render() {
         const { G: { config }, events, moves } = this.props;
-        const { scenario, startTileId, remainingMallTileIds, skipPassingActions } = config;
+        const { scenario, startTileId, remainingMallTileIds, divination, skipPassingActions } = config;
 
         return <div className="config-panel">
             <div
@@ -54,6 +54,13 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
                     { value: false, humanReadableValue: 'yes' },
                     { value: true, humanReadableValue: 'no' },
                 ], skipPassingActions || false)}
+            </div>
+            <div className="field">
+                {'Divination (show upcoming tile): '}
+                {this.renderChoices('divination', [
+                    { value: false, humanReadableValue: 'no' },
+                    { value: true, humanReadableValue: 'yes' },
+                ], divination || false)}
             </div>
             <button className="start" onClick={() => events.endPhase!()}>
                 {"Start"}
