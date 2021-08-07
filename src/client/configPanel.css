@@ -13,13 +13,19 @@
 }
 
 .config-panel .left-arrow {
-    float: left;
     transform: rotate(270deg);
 }
 
 .config-panel .right-arrow {
-    float: right;
     transform: rotate(90deg);
+}
+
+.config-panel .title.left-arrow {
+    float: left;
+}
+
+.config-panel .title.right-arrow {
+    float: right;
 }
 
 .config-panel .scenario {
@@ -30,6 +36,7 @@
 
 .config-panel .field {
     margin-bottom: 5px;
+    user-select: none;
 }
 
 .config-panel .toggleable {
@@ -42,6 +49,17 @@
 .config-panel .toggleable:hover {
     cursor: pointer;
     background-color: lightgreen;
+}
+
+.config-panel .tiny-arrow {
+    display: inline-block;
+    font-size: 14px;
+}
+
+.config-panel .tile-set {
+    display: inline-block;
+    width: 200px;
+    text-align: center;
 }
 
 .config-panel .start {

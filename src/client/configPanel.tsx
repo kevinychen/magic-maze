@@ -1,5 +1,5 @@
 import { BoardProps } from 'boardgame.io/react';
-import { isEqual, some } from 'lodash';
+import { isEqual, range, some } from 'lodash';
 import React from 'react';
 import { nextScenarioIndex, prevScenarioIndex, SCENARIOS } from '../lib/data';
 import { isValidConfig } from '../lib/game';
@@ -12,34 +12,33 @@ interface Choice {
     humanReadableValue: string;
 }
 
+const TILE_SET_CHOICES: Choice[] = [
+    { value: range(2, 9 + 1).map(String), humanReadableValue: 'single exit (2-9)' },
+    { value: range(2, 12 + 1).map(String), humanReadableValue: 'basic (2-12)' },
+    { value: range(2, 14 + 1).map(String), humanReadableValue: 'orange walls (2-14)' },
+    { value: range(2, 17 + 1).map(String), humanReadableValue: 'cameras (2-17)' },
+    { value: range(2, 19 + 1).map(String), humanReadableValue: 'full (2-19)' },
+    { value: range(2, 20 + 1).map(String), humanReadableValue: 'full (2-20)' },
+    { value: range(2, 21 + 1).map(String), humanReadableValue: 'full (2-21)' },
+    { value: range(2, 22 + 1).map(String), humanReadableValue: 'full (2-22)' },
+    { value: range(2, 23 + 1).map(String), humanReadableValue: 'full (2-23)' },
+    { value: range(2, 24 + 1).map(String), humanReadableValue: 'full (2-24)' },
+];
+
 export class ConfigPanel extends React.Component<BoardProps<GameState>> {
 
     render() {
         const { G: { config }, ctx, events, moves } = this.props;
-        const {
-            scenario,
-            startTileId,
-            remainingMallTileIds,
-            divination,
-            followTheLeader,
-            groupsForbidden,
-            multidimensionalMall,
-            noDoSomethingPawn,
-            rearrangementMode,
-            skipPassingActions,
-            trickTheGuards,
-            vortexOutOfService,
-        } = config;
-
+        const { scenario } = config;
         return <div className="config-panel">
             <div
-                className="toggleable left-arrow"
+                className="toggleable title left-arrow"
                 onClick={() => moves.setGameConfig(SCENARIOS[prevScenarioIndex(scenario)])}
             >
                 {'▲'}
             </div>
             <div
-                className="toggleable right-arrow"
+                className="toggleable title right-arrow"
                 onClick={() => moves.setGameConfig(SCENARIOS[nextScenarioIndex(scenario)])}
             >
                 {'▲'}
@@ -50,81 +49,21 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
             <hr />
             <div className="field">
                 {'Start tile: '}
-                {this.renderChoices('startTileId', [{ value: '1a', humanReadableValue: '1a' }, { value: '1b', humanReadableValue: '1b' }], startTileId)}
+                {this.renderChoices('startTileId', [{ value: '1a', humanReadableValue: '1a' }, { value: '1b', humanReadableValue: '1b' }])}
             </div>
             <div className="field">
                 {'Tile set: '}
-                {this.renderChoices('remainingMallTileIds', [
-                    { value: ['2', '3', '4', '5', '6', '7', '8', '9'], humanReadableValue: 'single exit (2-9)' },
-                    { value: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'], humanReadableValue: 'basic (2-12)' },
-                    { value: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'], humanReadableValue: 'orange walls (2-14)' },
-                    { value: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17'], humanReadableValue: 'cameras (2-17)' },
-                    { value: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'], humanReadableValue: 'full (2-19)' },
-                ], remainingMallTileIds)}
+                {this.renderTileSetChoices()}
             </div>
-            <div className="field">
-                {'Pass actions after timer flip: '}
-                {this.renderChoices('skipPassingActions', [
-                    { value: false, humanReadableValue: 'yes' },
-                    { value: true, humanReadableValue: 'no' },
-                ], skipPassingActions || false)}
-            </div>
-            <div className="field">
-                {'Divination (show upcoming tile): '}
-                {this.renderChoices('divination', [
-                    { value: false, humanReadableValue: 'no' },
-                    { value: true, humanReadableValue: 'yes' },
-                ], divination || false)}
-            </div>
-            <div className="field">
-                {'Follow the leader: '}
-                {this.renderChoices('followTheLeader', [
-                    { value: false, humanReadableValue: 'no' },
-                    { value: true, humanReadableValue: 'yes' },
-                ], followTheLeader || false)}
-            </div>
-            <div className="field">
-                {'Trick the guards: '}
-                {this.renderChoices('trickTheGuards', [
-                    { value: false, humanReadableValue: 'no' },
-                    { value: true, humanReadableValue: 'yes' },
-                ], trickTheGuards || false)}
-            </div>
-            <div className="field">
-                {'Rearrangement mode: '}
-                {this.renderChoices('rearrangementMode', [
-                    { value: false, humanReadableValue: 'no' },
-                    { value: true, humanReadableValue: 'yes' },
-                ], rearrangementMode || false)}
-            </div>
-            <div className="field">
-                {'Multidimensional mall: '}
-                {this.renderChoices('multidimensionalMall', [
-                    { value: false, humanReadableValue: 'no' },
-                    { value: true, humanReadableValue: 'yes' },
-                ], multidimensionalMall || false)}
-            </div>
-            <div className="field">
-                {'Allow "Do Something!" pawn: '}
-                {this.renderChoices('noDoSomethingPawn', [
-                    { value: false, humanReadableValue: 'yes' },
-                    { value: true, humanReadableValue: 'no' },
-                ], noDoSomethingPawn || false)}
-            </div>
-            <div className="field">
-                {'Enable vortex system: '}
-                {this.renderChoices('vortexOutOfService', [
-                    { value: false, humanReadableValue: 'yes' },
-                    { value: true, humanReadableValue: 'no' },
-                ], vortexOutOfService || false)}
-            </div>
-            <div className="field">
-                {'Groups forbidden: '}
-                {this.renderChoices('groupsForbidden', [
-                    { value: false, humanReadableValue: 'no' },
-                    { value: true, humanReadableValue: 'yes' },
-                ], groupsForbidden || false)}
-            </div>
+            <div className="field">{'Pass actions after timer flip: '}{this.renderBinaryChoices('skipPassingActions', true)}</div>
+            <div className="field">{'Divination (show upcoming tile): '}{this.renderBinaryChoices('divination', false)}</div>
+            <div className="field">{'Follow the leader: '}{this.renderBinaryChoices('followTheLeader', false)}</div>
+            <div className="field">{'Trick the guards: '}{this.renderBinaryChoices('trickTheGuards', false)}</div>
+            <div className="field">{'Rearrangement mode: '}{this.renderBinaryChoices('rearrangementMode', false)}</div>
+            <div className="field">{'Multidimensional mall: '}{this.renderBinaryChoices('multidimensionalMall', false)}</div>
+            <div className="field">{'Allow "Do Something!" pawn: '}{this.renderBinaryChoices('noDoSomethingPawn', true)}</div>
+            <div className="field">{'Enable vortex system: '}{this.renderBinaryChoices('vortexOutOfService', true)}</div>
+            <div className="field">{'Groups forbidden: '}{this.renderBinaryChoices('groupsForbidden', false)}</div>
             <button
                 className="start"
                 disabled={!isValidConfig(ctx, config)}
@@ -135,9 +74,40 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
         </div>;
     }
 
-    private renderChoices(key: string, choices: Choice[], currValue: any) {
-        const { moves } = this.props;
-        const index = choices.findIndex(choice => isEqual(choice.value, currValue));
+    private renderTileSetChoices() {
+        const { G: { config: { remainingMallTileIds } }, moves } = this.props;
+        const index = TILE_SET_CHOICES.findIndex(choice => isEqual(choice.value, remainingMallTileIds));
+        return <>
+            <div
+                className="toggleable tiny-arrow left-arrow"
+                onClick={() => moves.updateGameConfig({
+                    remainingMallTileIds: TILE_SET_CHOICES[(index + TILE_SET_CHOICES.length - 1) % TILE_SET_CHOICES.length].value,
+                })}
+            >
+                {'▲'}
+            </div>
+            <div className="tile-set">{TILE_SET_CHOICES[index].humanReadableValue}</div>
+            <div
+                className="toggleable tiny-arrow right-arrow"
+                onClick={() => moves.updateGameConfig({
+                    remainingMallTileIds: TILE_SET_CHOICES[(index + 1) % TILE_SET_CHOICES.length].value,
+                })}
+            >
+                {'▲'}
+            </div>
+        </>;
+    }
+
+    private renderBinaryChoices(key: string, invert: boolean) {
+        return this.renderChoices(key, [
+            { value: invert, humanReadableValue: 'no' },
+            { value: !invert, humanReadableValue: 'yes' },
+        ]);
+    }
+
+    private renderChoices(key: string, choices: Choice[]) {
+        const { G: { config }, moves } = this.props;
+        const index = choices.findIndex(choice => isEqual(choice.value, (config as any)[key] || false));
         return <span
             className="toggleable"
             onClick={() => moves.updateGameConfig({ [key]: choices[(index + 1) % choices.length].value })}
