@@ -66,7 +66,7 @@ export interface GameConfig {
     divination?: boolean;
     followTheLeader?: boolean;
     groupsForbidden?: boolean;
-    multdimensionalMall?: boolean;
+    multidimensionalMall?: boolean;
     noCommunication?: boolean;
     noDoSomethingPawn?: boolean;
     rearrangementMode?: boolean;

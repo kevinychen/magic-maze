@@ -23,6 +23,7 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
             divination,
             followTheLeader,
             groupsForbidden,
+            multidimensionalMall,
             noDoSomethingPawn,
             rearrangementMode,
             skipPassingActions,
@@ -95,6 +96,13 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
                     { value: false, humanReadableValue: 'no' },
                     { value: true, humanReadableValue: 'yes' },
                 ], rearrangementMode || false)}
+            </div>
+            <div className="field">
+                {'Multidimensional mall: '}
+                {this.renderChoices('multidimensionalMall', [
+                    { value: false, humanReadableValue: 'no' },
+                    { value: true, humanReadableValue: 'yes' },
+                ], multidimensionalMall || false)}
             </div>
             <div className="field">
                 {'Allow "Do Something!" pawn: '}

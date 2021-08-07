@@ -108,7 +108,6 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
             <DndProvider backend={HTML5Backend}>
                 {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile))}
                 {this.maybeRenderExplorableAreas()}
-                {this.maybeRenderCurrentExplorableArea()}
                 {usedObjects.map((loc, i) => <img
                     key={i}
                     className="object"
@@ -123,6 +122,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                     onClick={() => this.setState({ selectedPawn: selectedPawn === pawn ? undefined : pawn })}
                     {...this.getPositionStyle(pawnLocation, PAWN_SIZE)}
                 />)}
+                {this.maybeRenderCurrentExplorableArea()}
                 {possibleDestinations.map((loc, i) => <Destination
                     key={i}
                     index={i}

@@ -10,6 +10,7 @@ const INVALID_MOVE = "INVALID_MOVE";
 const TIMER_MILLIS = 180000;
 const MAX_CRYSTAL_BALL_USES = 2;
 const REARRANGEMENT_MODE_DISCARDS = 2;
+const OTHER_START_TILE_ID = '3';
 
 function allUsePurpleExit(config: GameConfig): boolean {
     const { remainingMallTileIds } = config;
@@ -33,12 +34,22 @@ export function isValidConfig(ctx: Ctx, config: GameConfig) {
 
 function setup(ctx: Ctx, config: GameConfig): GameState | undefined {
     const { numPlayers, random } = ctx;
-    const { startTileId, topMallTileIds, remainingMallTileIds, followTheLeader } = config;
+    const { startTileId, topMallTileIds, followTheLeader, multidimensionalMall } = config;
 
     const actionTiles = ACTION_TILES.filter(
         tile => tile.numPlayers.includes(followTheLeader ? numPlayers - 1 : numPlayers));
     if (followTheLeader) {
         actionTiles.push({ id: '0', numPlayers: [], actions: [] });
+    }
+
+    const pawnLocations = random!.Shuffle([[1, 1], [1, 2], [2, 1], [2, 2]])
+        .map(([localRow, localCol]) => ({ tileId: startTileId, localRow, localCol }));
+    const placedTiles = { [startTileId]: placeTile(MALL_TILES[startTileId], { row: 0, col: 0, dir: 0 }) };
+    let remainingMallTileIds = config.remainingMallTileIds;
+    if (multidimensionalMall) {
+        pawnLocations[0].tileId = pawnLocations[1].tileId = OTHER_START_TILE_ID;
+        placedTiles[OTHER_START_TILE_ID] = placeTile(MALL_TILES[OTHER_START_TILE_ID], { row: 1.5, col: 0, dir: 0 });
+        remainingMallTileIds = remainingMallTileIds.filter(tileId => tileId !== OTHER_START_TILE_ID);
     }
 
     return {
@@ -48,9 +59,8 @@ function setup(ctx: Ctx, config: GameConfig): GameState | undefined {
         equipmentStolen: false,
         explorableAreas: [],
         numCrystalBallUses: 0,
-        pawnLocations: random!.Shuffle([[1, 1], [1, 2], [2, 1], [2, 2]])
-            .map(([localRow, localCol]) => ({ tileId: startTileId, localRow, localCol })),
-        placedTiles: { [startTileId]: placeTile(MALL_TILES[startTileId], { row: 0, col: 0, dir: 0 }) },
+        pawnLocations,
+        placedTiles,
         rearrangementModeDiscards: 0,
         unplacedMallTileIds: [...random!.Shuffle(remainingMallTileIds), ...(topMallTileIds || [])],
         usedObjects: [],
@@ -93,6 +103,11 @@ function getNeighboringTile(G: GameState, tileId: string, dir: number): string |
         return undefined;
     }
     return newTileId;
+}
+
+function inAlternateDimension(G: GameState, tileId: string): boolean {
+    const { placedTiles } = G;
+    return placedTiles[tileId].row % 1 !== 0;
 }
 
 function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action): Location | undefined {
@@ -159,7 +174,7 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action
 export function getPossibleDestinations(G: GameState, playerID: string | null | undefined, pawn: Color): Location[] {
     const {
         actionTiles,
-        config: { vortexOutOfService },
+        config: { multidimensionalMall, vortexOutOfService },
         equipmentStolen,
         pawnLocations,
         placedTiles,
@@ -188,6 +203,21 @@ export function getPossibleDestinations(G: GameState, playerID: string | null | 
             }
         } else if (action === Action.VORTEX && !equipmentStolen && !vortexOutOfService) {
             for (const tileId in placedTiles) {
+                if (multidimensionalMall) {
+                    // In this mode, the hero must also start from a vertex square
+                    if (getSquare(G, pawn).vortex !== pawn) {
+                        continue;
+                    }
+                    const currDimension = inAlternateDimension(G, location.tileId);
+                    // In this mode, the hero cannot vortex within the same dimension
+                    if (inAlternateDimension(G, tileId) === currDimension) {
+                        continue;
+                    }
+                    // The four hero pawns cannot ever all be in the same dimension
+                    if (range(4).every(i => i === pawn || inAlternateDimension(G, pawnLocations[i].tileId) !== currDimension)) {
+                        continue;
+                    }
+                }
                 const { squares } = placedTiles[tileId];
                 for (let localRow = 0; localRow < 4; localRow++) {
                     for (let localCol = 0; localCol < 4; localCol++) {
@@ -430,7 +460,7 @@ export const Game = {
             G.exploringArea = newExploringArea;
         },
         finishExplore: (G: GameState, ctx: Ctx) => {
-            const { exploringArea, numCrystalBallUses, placedTiles } = G;
+            const { config: { multidimensionalMall }, exploringArea, numCrystalBallUses, placedTiles } = G;
             const { playerID } = ctx;
             if (exploringArea === undefined || !canExplore(G, playerID)) {
                 return INVALID_MOVE;
@@ -440,6 +470,28 @@ export const Game = {
             G.exploringArea = undefined;
             if (numCrystalBallUses >= 1 && !exploringArea.canPawnExplore) {
                 G.numCrystalBallUses--;
+            }
+            if (multidimensionalMall) {
+                while (true) {
+                    let needAdjustment = false;
+                    for (const [tileId1, { row: row1, col: col1 }] of Object.entries(placedTiles)) {
+                        for (const [tileId2, { row: row2, col: col2 }] of Object.entries(placedTiles)) {
+                            if (inAlternateDimension(G, tileId1) !== inAlternateDimension(G, tileId2)) {
+                                if (Math.abs(row1 - row2) < 1 && Math.abs(col1 - col2) < 1) {
+                                    needAdjustment = true;
+                                }
+                            }
+                        }
+                    }
+                    if (!needAdjustment) {
+                        break;
+                    }
+                    for (const [tileId, tile] of Object.entries(placedTiles)) {
+                        if (inAlternateDimension(G, tileId)) {
+                            tile.row++;
+                        }
+                    }
+                }
             }
         },
         discardTile: (G: GameState, _ctx: Ctx, tileId: string) => {
