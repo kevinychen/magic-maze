@@ -2,6 +2,7 @@ import { BoardProps } from 'boardgame.io/react';
 import { isEqual } from 'lodash';
 import React from 'react';
 import { SCENARIOS } from '../lib/data';
+import { isValidConfig } from '../lib/game';
 import { GameState } from '../lib/types';
 import './configPanel.css';
 
@@ -14,8 +15,8 @@ interface Choice {
 export class ConfigPanel extends React.Component<BoardProps<GameState>> {
 
     render() {
-        const { G: { config }, events, moves } = this.props;
-        const { scenario, startTileId, remainingMallTileIds, divination, skipPassingActions } = config;
+        const { G: { config }, ctx, events, moves } = this.props;
+        const { scenario, startTileId, remainingMallTileIds, divination, followTheLeader, skipPassingActions } = config;
 
         return <div className="config-panel">
             <div
@@ -62,7 +63,18 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
                     { value: true, humanReadableValue: 'yes' },
                 ], divination || false)}
             </div>
-            <button className="start" onClick={() => events.endPhase!()}>
+            <div className="field">
+                {'Follow the leader: '}
+                {this.renderChoices('followTheLeader', [
+                    { value: false, humanReadableValue: 'no' },
+                    { value: true, humanReadableValue: 'yes' },
+                ], followTheLeader || false)}
+            </div>
+            <button
+                className="start"
+                disabled={!isValidConfig(ctx, config)}
+                onClick={() => events.endPhase!()}
+            >
                 {"Start"}
             </button>
         </div>;

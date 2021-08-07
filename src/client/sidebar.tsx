@@ -63,7 +63,7 @@ export class Sidebar extends React.Component<BoardProps, State> {
 
     private renderPlayer(playerID: string) {
         const {
-            G: { actionTiles, doSomethingPawn, vortexSystemEnabled },
+            G: { actionTiles, config: { followTheLeader }, doSomethingPawn, vortexSystemEnabled },
             ctx: { numPlayers, phase, playOrder },
             matchData,
             moves,
@@ -87,12 +87,12 @@ export class Sidebar extends React.Component<BoardProps, State> {
             <div className="player-info">
                 {playerName}
                 <br />
-                <img
+                {!followTheLeader || actionTiles[myPlayerID!]?.id === '0' ? <img
                     className={`alert ${isShaking ? 'shake' : ''}`}
                     src={playerID === doSomethingPawn?.playerID || alertedPlayerIDs[playerID] ? "./alerting.png" : "./alert.png"}
                     alt="alert"
                     onClick={isShaking || phase !== 'play' ? undefined : () => moves.moveDoSomethingPawn(playerID)}
-                />
+                /> : undefined}
             </div>
             {playerID === myPlayerID ? <div className="tag">(You)</div> : undefined}
         </div>;

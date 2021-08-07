@@ -10,12 +10,30 @@ const INVALID_MOVE = "INVALID_MOVE";
 const TIMER_MILLIS = 180000;
 const MAX_CRYSTAL_BALL_USES = 2;
 
-function setup(ctx: Ctx, config: GameConfig): GameState {
+export function isValidConfig(ctx: Ctx, config: GameConfig) {
+    const { numPlayers } = ctx;
+    const { followTheLeader } = config;
+    if (followTheLeader && numPlayers === 2) {
+        return false;
+    }
+    if (!followTheLeader && numPlayers === 9) {
+        return false;
+    }
+    return true;
+}
+
+function setup(ctx: Ctx, config: GameConfig): GameState | undefined {
     const { numPlayers, random } = ctx;
-    const { startTileId, topMallTileIds, remainingMallTileIds } = config;
+    const { startTileId, topMallTileIds, remainingMallTileIds, followTheLeader } = config;
+
+    const actionTiles = ACTION_TILES.filter(
+        tile => tile.numPlayers.includes(followTheLeader ? numPlayers - 1 : numPlayers));
+    if (followTheLeader) {
+        actionTiles.push({ id: '0', numPlayers: [], actions: [] });
+    }
+
     return {
-        actionTiles: Object.fromEntries(random!.Shuffle(ACTION_TILES.filter(tile => tile.numPlayers.includes(numPlayers)))
-            .map((tile, i) => [i, tile])),
+        actionTiles: Object.fromEntries(random!.Shuffle(actionTiles).map((tile, i) => [i, tile])),
         clock: { numMillisLeft: TIMER_MILLIS, atTime: Date.now(), frozen: true },
         config,
         explorableAreas: [],
@@ -195,7 +213,7 @@ export function getExplorableAreas(G: GameState, playerID: string | null | undef
 
 export const Name = "magic-maze";
 export const MinPlayers = 2;
-export const MaxPlayers = 8;
+export const MaxPlayers = 9;
 
 export const Game = {
     name: Name,

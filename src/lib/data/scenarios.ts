@@ -49,18 +49,18 @@ export const SCENARIOS: GameConfig[] = [
         startTileId: '1b',
         remainingMallTileIds: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'],
     },
-    // {
-    //     scenario: 8,
-    //     startTileId: '1b',
-    //     remainingMallTileIds: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'],
-    //     divination: true,
-    // },
-    // {
-    //     scenario: 9,
-    //     startTileId: '1b',
-    //     remainingMallTileIds: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'],
-    //     followTheLeader: true,
-    // },
+    {
+        scenario: 8,
+        startTileId: '1b',
+        remainingMallTileIds: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'],
+        divination: true,
+    },
+    {
+        scenario: 9,
+        startTileId: '1b',
+        remainingMallTileIds: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'],
+        followTheLeader: true,
+    },
     // {
     //     scenario: 10,
     //     startTileId: '1b',
