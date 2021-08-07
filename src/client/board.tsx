@@ -5,7 +5,7 @@ import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { PanZoom } from 'react-easy-panzoom'
 import { animated, useSpring } from 'react-spring';
-import { atExit, atWeapon, canExplore, getExplorableAreas, getPossibleDestinations, getSquare } from '../lib/game';
+import { atExit, atWeapon, canExplore, getDiscardableTiles, getExplorableAreas, getPossibleDestinations } from '../lib/game';
 import { Color, ExplorableArea, GameState, Location, TilePlacement } from '../lib/types';
 import { Alert } from './alert';
 import { AudioController, Phase } from './audio';
@@ -29,6 +29,7 @@ interface State {
     selectedPawn?: Color;
     possibleDestinations: Location[];
     currentlyExplorableAreas: ExplorableArea[];
+    discardableTiles: string[];
 }
 
 export class Board extends React.Component<BoardProps<GameState>, State> {
@@ -38,6 +39,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
         this.state = {
             possibleDestinations: [],
             currentlyExplorableAreas: [],
+            discardableTiles: [],
         };
     }
 
@@ -49,14 +51,16 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
     componentDidUpdate() {
         const { G, playerID } = this.props;
         const { vortexSystemEnabled } = G;
-        const { selectedPawn, possibleDestinations, currentlyExplorableAreas } = this.state;
+        const { selectedPawn, possibleDestinations, currentlyExplorableAreas, discardableTiles } = this.state;
 
         const newState: State = {
             possibleDestinations: selectedPawn === undefined ? [] : getPossibleDestinations(G, playerID, selectedPawn),
             currentlyExplorableAreas: getExplorableAreas(G, playerID),
+            discardableTiles: getDiscardableTiles(G),
         };
         if (!isEqual(possibleDestinations, newState.possibleDestinations)
-            || !isEqual(currentlyExplorableAreas, newState.currentlyExplorableAreas)) {
+            || !isEqual(currentlyExplorableAreas, newState.currentlyExplorableAreas)
+            || !isEqual(discardableTiles, newState.discardableTiles)) {
             this.setState(newState);
         }
 
@@ -102,7 +106,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
             preventPan={event => (event.target as any).draggable}
         >
             <DndProvider backend={HTML5Backend}>
-                {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile, true))}
+                {Object.entries(placedTiles).map(([tileId, tile]) => this.renderMallTile(tileId, tile))}
                 {this.maybeRenderExplorableAreas()}
                 {this.maybeRenderCurrentExplorableArea()}
                 {usedObjects.map((loc, i) => <img
@@ -129,13 +133,25 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
         </PanZoom>;
     }
 
-    renderMallTile(tileId: string, tilePlacement: TilePlacement, placed: boolean) {
+    renderMallTile(tileId: string, tilePlacement: TilePlacement) {
         const { G, moves, playerID } = this.props;
+        const { discardableTiles } = this.state;
+        const { placedTiles } = G;
         const { row, col, dir } = tilePlacement;
-        const explorable = !placed && canExplore(G, playerID);
+        let extraClassName = '';
+        let onClick = undefined;
+        if (!(tileId in placedTiles)) {
+            extraClassName = 'unplaced';
+            if (canExplore(G, playerID)) {
+                onClick = () => moves.finishExplore();
+            }
+        } else if (discardableTiles.includes(tileId)) {
+            extraClassName = 'discardable';
+            onClick = () => moves.discardTile(tileId);
+        }
         return <img
             key={tileId}
-            className={`object ${placed ? 'placed' : 'unplaced'} ${explorable ? 'explorable' : ''}`}
+            className={`object ${extraClassName} ${onClick !== undefined ? 'clickable' : ''}`}
             src={`./tiles/tile${tileId}.jpg`}
             alt={`Tile ${tileId}`}
             style={{
@@ -144,7 +160,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                 transform: `rotate(${dir * 90}deg)`,
                 transformOrigin: "center",
             }}
-            onClick={explorable ? () => moves.finishExplore() : undefined}
+            onClick={this.isPlayPhase() ? onClick : undefined}
         />;
     }
 
@@ -170,7 +186,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
         if (!this.isPlayPhase() || exploringArea === undefined) {
             return null;
         }
-        return this.renderMallTile(exploringArea.tileId, exploringArea, false);
+        return this.renderMallTile(exploringArea.tileId, exploringArea);
     }
 
     renderInfo() {

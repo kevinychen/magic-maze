@@ -22,6 +22,7 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
             remainingMallTileIds,
             divination,
             followTheLeader,
+            rearrangementMode,
             skipPassingActions,
             trickTheGuards,
         } = config;
@@ -84,6 +85,13 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
                     { value: false, humanReadableValue: 'no' },
                     { value: true, humanReadableValue: 'yes' },
                 ], trickTheGuards || false)}
+            </div>
+            <div className="field">
+                {'Rearrangement mode: '}
+                {this.renderChoices('rearrangementMode', [
+                    { value: false, humanReadableValue: 'no' },
+                    { value: true, humanReadableValue: 'yes' },
+                ], rearrangementMode || false)}
             </div>
             <button
                 className="start"

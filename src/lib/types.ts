@@ -86,6 +86,7 @@ export interface GameState {
     numCrystalBallUses: number;
     pawnLocations: Location[];
     placedTiles: { [tileId: string]: MallTile };
+    rearrangementModeDiscards: number;
     unplacedMallTileIds: string[];
     usedObjects: Location[];
     vortexSystemEnabled: boolean;

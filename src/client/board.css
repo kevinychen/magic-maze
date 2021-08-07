@@ -41,11 +41,15 @@ body {
     opacity: 0.3;
 }
 
-.game .explorable {
+.game .discardable {
+    cursor: not-allowed;
+}
+
+.game .clickable {
     pointer-events: unset;
 }
 
-.game .explorable:hover {
+.game .clickable:hover {
     opacity: 0.7;
 }
 

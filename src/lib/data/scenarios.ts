@@ -67,12 +67,12 @@ export const SCENARIOS: GameConfig[] = [
         remainingMallTileIds: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'],
         trickTheGuards: true,
     },
-    // {
-    //     scenario: 11,
-    //     startTileId: '1b',
-    //     remainingMallTileIds: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'],
-    //     rearrangementMode: true,
-    // },
+    {
+        scenario: 11,
+        startTileId: '1b',
+        remainingMallTileIds: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'],
+        rearrangementMode: true,
+    },
     // {
     //     scenario: 12,
     //     startTileId: '1b',
