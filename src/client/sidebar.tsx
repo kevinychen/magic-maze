@@ -63,15 +63,13 @@ export class Sidebar extends React.Component<BoardProps, State> {
 
     private renderPlayer(playerID: string) {
         const {
-            G: { actionTiles, config: { followTheLeader }, doSomethingPawn, vortexSystemEnabled },
-            ctx: { numPlayers, phase, playOrder },
+            G: { actionTiles, vortexSystemEnabled },
+            ctx: { numPlayers, playOrder },
             matchData,
-            moves,
             playerID: myPlayerID,
         } = this.props;
-        const { height, alertedPlayerIDs } = this.state;
+        const { height } = this.state;
         const playerName = matchData === undefined ? `Player ${playerID}` : matchData[playOrder.indexOf(playerID)]?.name;
-        const isShaking = alertedPlayerIDs[playerID];
         return <div
             key={playerID}
             className={`player ${playerID === myPlayerID ? 'me' : ''}`}
@@ -87,14 +85,32 @@ export class Sidebar extends React.Component<BoardProps, State> {
             <div className="player-info">
                 {playerName}
                 <br />
-                {!followTheLeader || actionTiles[myPlayerID!]?.id === '0' ? <img
-                    className={`alert ${isShaking ? 'shake' : ''}`}
-                    src={playerID === doSomethingPawn?.playerID || alertedPlayerIDs[playerID] ? "./alerting.png" : "./alert.png"}
-                    alt="alert"
-                    onClick={isShaking || phase !== 'play' ? undefined : () => moves.moveDoSomethingPawn(playerID)}
-                /> : undefined}
+                {this.maybeRenderDoSomething(playerID)}
             </div>
             {playerID === myPlayerID ? <div className="tag">(You)</div> : undefined}
         </div>;
+    }
+
+    private maybeRenderDoSomething(playerID: string) {
+        const {
+            G: { actionTiles, config: { followTheLeader, noDoSomethingPawn }, doSomethingPawn },
+            ctx: { phase },
+            moves,
+            playerID: myPlayerID,
+        } = this.props;
+        if (noDoSomethingPawn) {
+            return null;
+        }
+        if (followTheLeader && actionTiles[myPlayerID!]?.id !== '0') {
+            return null;
+        }
+        const { alertedPlayerIDs } = this.state;
+        const isShaking = alertedPlayerIDs[playerID];
+        return <img
+            className={`alert ${isShaking ? 'shake' : ''}`}
+            src={playerID === doSomethingPawn?.playerID || alertedPlayerIDs[playerID] ? "./alerting.png" : "./alert.png"}
+            alt="alert"
+            onClick={isShaking || phase !== 'play' ? undefined : () => moves.moveDoSomethingPawn(playerID)}
+        />;
     }
 }
