@@ -11,13 +11,21 @@ const TIMER_MILLIS = 180000;
 const MAX_CRYSTAL_BALL_USES = 2;
 const REARRANGEMENT_MODE_DISCARDS = 2;
 
+function allUsePurpleExit(config: GameConfig): boolean {
+    const { remainingMallTileIds } = config;
+    return remainingMallTileIds.every(tileId => parseInt(tileId) <= 9);
+}
+
 export function isValidConfig(ctx: Ctx, config: GameConfig) {
     const { numPlayers } = ctx;
-    const { followTheLeader } = config;
+    const { followTheLeader, groupsForbidden } = config;
     if (followTheLeader && numPlayers === 2) {
         return false;
     }
     if (!followTheLeader && numPlayers === 9) {
+        return false;
+    }
+    if (allUsePurpleExit(config) && groupsForbidden) {
         return false;
     }
     return true;
@@ -61,15 +69,11 @@ export function atWeapon(G: GameState, pawn: Color): boolean {
     return weapon !== undefined && ((weapon === pawn) !== trickTheGuards);
 }
 
-function allUsePurpleExit(G: GameState): boolean {
-    const { config: { remainingMallTileIds } } = G;
-    return remainingMallTileIds.every(tileId => parseInt(tileId) <= 9);
-}
-
 export function atExit(G: GameState, pawn: Color): boolean {
-    const { config: { trickTheGuards } } = G;
+    const { config } = G;
+    const { trickTheGuards } = config;
     const { exit } = getSquare(G, pawn);
-    return exit !== undefined && (allUsePurpleExit(G) || ((exit === pawn) !== trickTheGuards));
+    return exit !== undefined && (allUsePurpleExit(config) || ((exit === pawn) !== trickTheGuards));
 }
 
 function getNeighboringTile(G: GameState, tileId: string, dir: number): string | undefined {
@@ -92,7 +96,8 @@ function getNeighboringTile(G: GameState, tileId: string, dir: number): string |
 }
 
 function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action): Location | undefined {
-    const { pawnLocations, placedTiles } = G;
+    const { config, pawnLocations, placedTiles } = G;
+    const { startTileId, groupsForbidden } = config;
     const { tileId, localRow, localCol } = pawnLocation;
     const { squares, escalators } = placedTiles[tileId];
 
@@ -113,6 +118,9 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action
     if (localRow === EXPLORE_LOCATIONS[dir].row && localCol === EXPLORE_LOCATIONS[dir].col) {
         const newTileId = getNeighboringTile(G, tileId, dir);
         if (newTileId === undefined) {
+            return undefined;
+        }
+        if (groupsForbidden && newTileId !== startTileId && pawnLocations.some(loc => loc.tileId === newTileId)) {
             return undefined;
         }
         return { tileId: newTileId, localRow: 3 - localRow, localCol: 3 - localCol };
@@ -136,7 +144,7 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action
 
     // If we're moving into a shared exit, then don't check for another pawn
     const destination = { tileId: tileId, localRow: localRow + drow, localCol: localCol + dcol };
-    if (allUsePurpleExit(G) && squares[localRow + drow][localCol + dcol].exit !== undefined) {
+    if (allUsePurpleExit(config) && squares[localRow + drow][localCol + dcol].exit !== undefined) {
         return destination;
     }
 

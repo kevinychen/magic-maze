@@ -22,6 +22,7 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
             remainingMallTileIds,
             divination,
             followTheLeader,
+            groupsForbidden,
             noDoSomethingPawn,
             rearrangementMode,
             skipPassingActions,
@@ -108,6 +109,13 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
                     { value: false, humanReadableValue: 'yes' },
                     { value: true, humanReadableValue: 'no' },
                 ], vortexOutOfService || false)}
+            </div>
+            <div className="field">
+                {'Groups forbidden: '}
+                {this.renderChoices('groupsForbidden', [
+                    { value: false, humanReadableValue: 'no' },
+                    { value: true, humanReadableValue: 'yes' },
+                ], groupsForbidden || false)}
             </div>
             <button
                 className="start"

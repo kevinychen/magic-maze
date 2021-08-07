@@ -98,12 +98,12 @@ export const SCENARIOS: GameConfig[] = [
         remainingMallTileIds: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'],
         vortexOutOfService: true,
     },
-    // {
-    //     scenario: 17,
-    //     startTileId: '1b',
-    //     remainingMallTileIds: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'],
-    //     groupsForbidden: true,
-    // },
+    {
+        scenario: 17,
+        startTileId: '1b',
+        remainingMallTileIds: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'],
+        groupsForbidden: true,
+    },
 ];
 
 export function prevScenarioIndex(scenario: number): number {
