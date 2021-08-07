@@ -1,6 +1,6 @@
 import { Ctx } from "boardgame.io";
 import { findKey, isEqual, range, some } from 'lodash';
-import { ACTION_TILES, MALL_TILES, SCENARIOS } from "./data";
+import { ACTION_TILES, MALL_TILES, nextScenarioIndex, SCENARIOS } from "./data";
 import { placeTile } from "./tiles";
 import { Action, Color, ExplorableArea, GameConfig, GameState, Location, Square, Wall } from "./types";
 
@@ -287,7 +287,7 @@ export const MaxPlayers = 9;
 export const Game = {
     name: Name,
 
-    setup: (ctx: Ctx) => setup(ctx, SCENARIOS[1]),
+    setup: (ctx: Ctx) => setup(ctx, SCENARIOS[0]),
 
     turn: {
         activePlayers: { all: '' },
@@ -324,8 +324,8 @@ export const Game = {
                 const now = Date.now();
                 G.clock = { numMillisLeft: numMillisLeft - (now - atTime), atTime: now, frozen: true }
                 G.clock.frozen = true;
-                G.config = numMillisLeft > 0 && some(SCENARIOS, config) && scenario + 1 < SCENARIOS.length
-                    ? SCENARIOS[scenario + 1]
+                G.config = numMillisLeft > 0 && some(SCENARIOS, config) && nextScenarioIndex(scenario) > 0
+                    ? SCENARIOS[nextScenarioIndex(scenario)]
                     : config;
             },
             next: 'setConfig',

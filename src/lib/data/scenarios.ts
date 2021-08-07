@@ -2,12 +2,6 @@ import { GameConfig } from "../types";
 
 export const SCENARIOS: GameConfig[] = [
     {
-        // sentinel
-        scenario: 0,
-        startTileId: '',
-        remainingMallTileIds: [],
-    },
-    {
         scenario: 1,
         startTileId: '1a',
         remainingMallTileIds: ['2', '3', '4', '5', '6', '7', '8', '9'],
@@ -111,3 +105,11 @@ export const SCENARIOS: GameConfig[] = [
     //     groupsForbidden: true,
     // },
 ];
+
+export function prevScenarioIndex(scenario: number): number {
+    return (SCENARIOS.findIndex(config => config.scenario === scenario) + SCENARIOS.length - 1) % SCENARIOS.length;
+}
+
+export function nextScenarioIndex(scenario: number): number {
+    return (SCENARIOS.findIndex(config => config.scenario === scenario) + 1) % SCENARIOS.length;
+}

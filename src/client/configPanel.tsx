@@ -1,7 +1,7 @@
 import { BoardProps } from 'boardgame.io/react';
-import { isEqual } from 'lodash';
+import { isEqual, some } from 'lodash';
 import React from 'react';
-import { SCENARIOS } from '../lib/data';
+import { nextScenarioIndex, prevScenarioIndex, SCENARIOS } from '../lib/data';
 import { isValidConfig } from '../lib/game';
 import { GameState } from '../lib/types';
 import './configPanel.css';
@@ -30,18 +30,18 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
         return <div className="config-panel">
             <div
                 className="toggleable left-arrow"
-                onClick={() => moves.setGameConfig(scenario > 1 ? SCENARIOS[scenario - 1] : SCENARIOS[SCENARIOS.length - 1])}
+                onClick={() => moves.setGameConfig(SCENARIOS[prevScenarioIndex(scenario)])}
             >
                 {'▲'}
             </div>
             <div
                 className="toggleable right-arrow"
-                onClick={() => moves.setGameConfig(scenario + 1 < SCENARIOS.length ? SCENARIOS[scenario + 1] : SCENARIOS[1])}
+                onClick={() => moves.setGameConfig(SCENARIOS[nextScenarioIndex(scenario)])}
             >
                 {'▲'}
             </div>
             <div className="field scenario">
-                {`Scenario ${scenario} ${isEqual(SCENARIOS[scenario], config) ? '' : '(custom)'}`}
+                {`Scenario ${scenario} ${some(SCENARIOS, config) ? '' : '(custom)'}`}
             </div>
             <hr />
             <div className="field">
