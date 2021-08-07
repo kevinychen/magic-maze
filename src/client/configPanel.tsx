@@ -3,7 +3,7 @@ import { isEqual, range, some } from 'lodash';
 import React from 'react';
 import { nextScenarioIndex, prevScenarioIndex, SCENARIOS } from '../lib/data';
 import { isValidConfig } from '../lib/game';
-import { GameState } from '../lib/types';
+import { GameState, TalkingMode } from '../lib/types';
 import './configPanel.css';
 
 interface Choice {
@@ -11,19 +11,6 @@ interface Choice {
     value: any;
     humanReadableValue: string;
 }
-
-const TILE_SET_CHOICES: Choice[] = [
-    { value: range(2, 9 + 1).map(String), humanReadableValue: 'single exit (2-9)' },
-    { value: range(2, 12 + 1).map(String), humanReadableValue: 'basic (2-12)' },
-    { value: range(2, 14 + 1).map(String), humanReadableValue: 'orange walls (2-14)' },
-    { value: range(2, 17 + 1).map(String), humanReadableValue: 'cameras (2-17)' },
-    { value: range(2, 19 + 1).map(String), humanReadableValue: 'full (2-19)' },
-    { value: range(2, 20 + 1).map(String), humanReadableValue: 'full (2-20)' },
-    { value: range(2, 21 + 1).map(String), humanReadableValue: 'full (2-21)' },
-    { value: range(2, 22 + 1).map(String), humanReadableValue: 'full (2-22)' },
-    { value: range(2, 23 + 1).map(String), humanReadableValue: 'full (2-23)' },
-    { value: range(2, 24 + 1).map(String), humanReadableValue: 'full (2-24)' },
-];
 
 export class ConfigPanel extends React.Component<BoardProps<GameState>> {
 
@@ -53,7 +40,26 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
             </div>
             <div className="field">
                 {'Tile set: '}
-                {this.renderTileSetChoices()}
+                {this.renderArrowChoices('remainingMallTileIds', [
+                    { value: range(2, 9 + 1).map(String), humanReadableValue: 'single exit (2-9)' },
+                    { value: range(2, 12 + 1).map(String), humanReadableValue: 'basic (2-12)' },
+                    { value: range(2, 14 + 1).map(String), humanReadableValue: 'orange walls (2-14)' },
+                    { value: range(2, 17 + 1).map(String), humanReadableValue: 'cameras (2-17)' },
+                    { value: range(2, 19 + 1).map(String), humanReadableValue: 'full (2-19)' },
+                    { value: range(2, 20 + 1).map(String), humanReadableValue: 'full (2-20)' },
+                    { value: range(2, 21 + 1).map(String), humanReadableValue: 'full (2-21)' },
+                    { value: range(2, 22 + 1).map(String), humanReadableValue: 'full (2-22)' },
+                    { value: range(2, 23 + 1).map(String), humanReadableValue: 'full (2-23)' },
+                    { value: range(2, 24 + 1).map(String), humanReadableValue: 'full (2-24)' },
+                ])}
+            </div>
+            <div className="field">
+                {'Talking: '}
+                {this.renderArrowChoices('talkingMode', [
+                    { value: TalkingMode.ALWAYS_ALLOW, humanReadableValue: 'always (novices only)' },
+                    { value: undefined, humanReadableValue: 'normal rules' },
+                    { value: TalkingMode.NEVER, humanReadableValue: 'never allowed' },
+                ])}
             </div>
             <div className="field">{'Pass actions after timer flip: '}{this.renderBinaryChoices('skipPassingActions', true)}</div>
             <div className="field">{'Divination (show upcoming tile): '}{this.renderBinaryChoices('divination', false)}</div>
@@ -74,23 +80,23 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
         </div>;
     }
 
-    private renderTileSetChoices() {
-        const { G: { config: { remainingMallTileIds } }, moves } = this.props;
-        const index = TILE_SET_CHOICES.findIndex(choice => isEqual(choice.value, remainingMallTileIds));
+    private renderArrowChoices(key: 'remainingMallTileIds' | 'talkingMode', choices: Choice[]) {
+        const { G: { config }, moves } = this.props;
+        const index = choices.findIndex(choice => isEqual(choice.value, config[key]));
         return <>
             <div
                 className="toggleable tiny-arrow left-arrow"
                 onClick={() => moves.updateGameConfig({
-                    remainingMallTileIds: TILE_SET_CHOICES[(index + TILE_SET_CHOICES.length - 1) % TILE_SET_CHOICES.length].value,
+                    [key]: choices[(index + choices.length - 1) % choices.length].value,
                 })}
             >
                 {'▲'}
             </div>
-            <div className="tile-set">{TILE_SET_CHOICES[index].humanReadableValue}</div>
+            <div className="constant-length">{choices[index].humanReadableValue}</div>
             <div
                 className="toggleable tiny-arrow right-arrow"
                 onClick={() => moves.updateGameConfig({
-                    remainingMallTileIds: TILE_SET_CHOICES[(index + 1) % TILE_SET_CHOICES.length].value,
+                    [key]: choices[(index + 1) % choices.length].value,
                 })}
             >
                 {'▲'}

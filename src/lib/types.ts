@@ -1,6 +1,7 @@
 export enum Wall { ORANGE, FULL };
 export enum Color { YELLOW, PURPLE, GREEN, ORANGE };
 export enum Action { UP, RIGHT, DOWN, LEFT, ESCALATOR, EXPLORE, VORTEX };
+export enum TalkingMode { ALWAYS_ALLOW, DEFAULT, NEVER };
 
 export interface Location {
 
@@ -41,6 +42,7 @@ export type ExplorableArea = TilePlacement & {
     exploreCol: number,
     exploreDir: number,
     canPawnExplore: boolean,
+    isElfExplore: boolean,
 };
 
 export type MallTile = UnplacedMallTile & TilePlacement;
@@ -61,13 +63,12 @@ export interface GameConfig {
     remainingMallTileIds: string[];
 
     allUsePurpleExit?: boolean;
-    canAlwaysTalk?: boolean;
-    disableGreenExploreRule?: boolean;
+    disableElfExploreRule?: boolean;
     divination?: boolean;
     followTheLeader?: boolean;
     groupsForbidden?: boolean;
     multidimensionalMall?: boolean;
-    noCommunication?: boolean;
+    talkingMode?: TalkingMode;
     noDoSomethingPawn?: boolean;
     rearrangementMode?: boolean;
     skipPassingActions?: boolean;
@@ -78,6 +79,7 @@ export interface GameConfig {
 export interface GameState {
 
     actionTiles: { [playerID: string]: ActionTile };
+    canTalk: boolean;
     clock: { numMillisLeft: number, atTime: number, frozen: boolean };
     config: GameConfig;
     doSomethingPawn?: { playerID: string, byPlayerID: string, atTime: number };

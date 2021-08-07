@@ -6,7 +6,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { PanZoom } from 'react-easy-panzoom'
 import { animated, useSpring } from 'react-spring';
 import { atExit, atWeapon, canExplore, getDiscardableTiles, getExplorableAreas, getPossibleDestinations } from '../lib/game';
-import { Color, ExplorableArea, GameState, Location, TilePlacement } from '../lib/types';
+import { Color, ExplorableArea, GameState, Location, TalkingMode, TilePlacement } from '../lib/types';
 import { Alert } from './alert';
 import { AudioController, Phase } from './audio';
 import { Clock } from './clock';
@@ -191,7 +191,13 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
 
     renderInfo() {
         const { G, moves } = this.props;
-        const { clock: { numMillisLeft, atTime, frozen }, equipmentStolen, unplacedMallTileIds } = G;
+        const {
+            canTalk,
+            clock: { numMillisLeft, atTime, frozen },
+            config: { talkingMode },
+            equipmentStolen,
+            unplacedMallTileIds,
+        } = G;
         const weapons: Color[] = equipmentStolen
             ? range(4).filter(i => !atExit(G, i))
             : range(4).filter(i => atWeapon(G, i));
@@ -211,6 +217,14 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                     {this.renderTopUnplacedTile()}
                 </span>
                 {`x${unplacedMallTileIds.length}`}
+            </span>
+            <span className={"section"}>
+                <img
+                    src={talkingMode === TalkingMode.ALWAYS_ALLOW || (canTalk && talkingMode !== TalkingMode.NEVER)
+                        ? './talk.png'
+                        : './notalk.png'}
+                    alt="talk"
+                />
             </span>
             {weapons.length === 0
                 ? undefined

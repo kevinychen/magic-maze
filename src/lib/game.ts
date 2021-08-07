@@ -54,6 +54,7 @@ function setup(ctx: Ctx, config: GameConfig): GameState | undefined {
 
     return {
         actionTiles: Object.fromEntries(random!.Shuffle(actionTiles).map((tile, i) => [i, tile])),
+        canTalk: true,
         clock: { numMillisLeft: TIMER_MILLIS, atTime: Date.now(), frozen: true },
         config,
         equipmentStolen: false,
@@ -278,6 +279,7 @@ export function getExplorableAreas(G: GameState, playerID: string | null | undef
                     exploreCol: col,
                     exploreDir: dir,
                     canPawnExplore,
+                    isElfExplore: canPawnExplore && explorePawn === 2,
                     row: row + drow,
                     col: col + dcol,
                     dir: (dir - MALL_TILES[newTileId].entranceDir! + 6) % 4,
@@ -420,8 +422,9 @@ export const Game = {
             }
             const { tileId, localRow, localCol } = newLocation;
             const { squares } = placedTiles[tileId];
+            const flippedTimer = squares[localRow][localCol].timer && !some(usedObjects, newLocation);
             // check if we flip the timer
-            if (squares[localRow][localCol].timer && !some(usedObjects, newLocation)) {
+            if (flippedTimer) {
                 const actualNumMillisLeft = numMillisLeft - (now - atTime);
                 usedObjects.push(newLocation);
                 G.clock = { numMillisLeft: TIMER_MILLIS - actualNumMillisLeft, atTime: now, frozen: false };
@@ -432,6 +435,7 @@ export const Game = {
                     G.rearrangementModeDiscards = REARRANGEMENT_MODE_DISCARDS;
                 }
             }
+            G.canTalk = flippedTimer;
 
             if (range(4).every(i => atWeapon(G, i))) {
                 G.equipmentStolen = true;
@@ -445,7 +449,7 @@ export const Game = {
             }
         },
         startExplore: (G: GameState, ctx: Ctx, newExploringArea: ExplorableArea) => {
-            const { explorableAreas, exploringArea, unplacedMallTileIds } = G;
+            const { config: { disableElfExploreRule }, explorableAreas, exploringArea, unplacedMallTileIds } = G;
             const { playerID } = ctx;
             const newExplorableAreas = getExplorableAreas(G, playerID);
             if (!some(newExplorableAreas, newExploringArea)) {
@@ -458,6 +462,9 @@ export const Game = {
                 return INVALID_MOVE;
             }
             G.exploringArea = newExploringArea;
+            if (!disableElfExploreRule && newExploringArea.isElfExplore) {
+                G.canTalk = true;
+            }
         },
         finishExplore: (G: GameState, ctx: Ctx) => {
             const { config: { multidimensionalMall }, exploringArea, numCrystalBallUses, placedTiles } = G;

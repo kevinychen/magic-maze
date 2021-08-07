@@ -1,5 +1,5 @@
 import { range } from "lodash";
-import { GameConfig } from "../types";
+import { GameConfig, TalkingMode } from "../types";
 
 export const SCENARIOS: GameConfig[] = [
     {
@@ -7,21 +7,21 @@ export const SCENARIOS: GameConfig[] = [
         startTileId: '1a',
         remainingMallTileIds: range(2, 9 + 1).map(String),
         allUsePurpleExit: true,
-        disableGreenExploreRule: true,
+        disableElfExploreRule: true,
         skipPassingActions: true,
     },
     {
         scenario: 2,
         startTileId: '1a',
         remainingMallTileIds: range(2, 12 + 1).map(String),
-        disableGreenExploreRule: true,
+        disableElfExploreRule: true,
         skipPassingActions: true,
     },
     {
         scenario: 3,
         startTileId: '1a',
         remainingMallTileIds: range(2, 12 + 1).map(String),
-        disableGreenExploreRule: true,
+        disableElfExploreRule: true,
     },
     {
         scenario: 4,
@@ -68,12 +68,12 @@ export const SCENARIOS: GameConfig[] = [
         remainingMallTileIds: range(2, 19 + 1).map(String),
         rearrangementMode: true,
     },
-    // {
-    //     scenario: 12,
-    //     startTileId: '1b',
-    //     remainingMallTileIds: range(2, 19 + 1).map(String),
-    //     noCommunication: true,
-    // },
+    {
+        scenario: 12,
+        startTileId: '1b',
+        remainingMallTileIds: range(2, 19 + 1).map(String),
+        talkingMode: TalkingMode.NEVER,
+    },
     {
         scenario: 13,
         startTileId: '1b',
@@ -81,18 +81,18 @@ export const SCENARIOS: GameConfig[] = [
         divination: true,
         multidimensionalMall: true,
     },
-    // {
-    //     scenario: 14,
-    //     startTileId: '1b',
-    //     remainingMallTileIds: range(2, 19 + 1).map(String),
-    //     noCommunication: true,
-    // },
+    {
+        scenario: 14,
+        startTileId: '1b',
+        remainingMallTileIds: range(2, 19 + 1).map(String),
+        talkingMode: TalkingMode.NEVER,
+    },
     {
         scenario: 15,
         startTileId: '1b',
         remainingMallTileIds: range(2, 19 + 1).map(String),
-        noCommunication: true,
         noDoSomethingPawn: true,
+        talkingMode: TalkingMode.NEVER,
     },
     {
         scenario: 16,
