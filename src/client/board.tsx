@@ -5,7 +5,7 @@ import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { PanZoom } from 'react-easy-panzoom'
 import { animated, useSpring } from 'react-spring';
-import { atExit, canExplore, getExplorableAreas, getPossibleDestinations, getSquare } from '../lib/game';
+import { atExit, atWeapon, canExplore, getExplorableAreas, getPossibleDestinations, getSquare } from '../lib/game';
 import { Color, ExplorableArea, GameState, Location, TilePlacement } from '../lib/types';
 import { Alert } from './alert';
 import { AudioController, Phase } from './audio';
@@ -120,6 +120,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
                     {...this.getPositionStyle(pawnLocation, PAWN_SIZE)}
                 />)}
                 {possibleDestinations.map((loc, i) => <Destination
+                    key={i}
                     index={i}
                     onClick={this.isPlayPhase() ? () => moves.movePawn(selectedPawn, loc) : undefined}
                     {...this.getPositionStyle(loc, SQUARE_SIZE)}
@@ -157,6 +158,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
             currentlyExplorableAreas = intersectionWith(currentlyExplorableAreas, explorableAreas, isEqual);
         }
         return currentlyExplorableAreas.map((explorableArea, i) => <Destination
+            key={i}
             index={i}
             onClick={() => moves.startExplore(explorableArea)}
             {...this.getExplorableAreaStyle(explorableArea)}
@@ -175,7 +177,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
         const { G, moves } = this.props;
         const { clock: { numMillisLeft, atTime, frozen }, unplacedMallTileIds, vortexSystemEnabled } = G;
         const weapons: Color[] = vortexSystemEnabled
-            ? range(4).filter(i => getSquare(G, i).weapon === i)
+            ? range(4).filter(i => atWeapon(G, i))
             : range(4).filter(i => !atExit(G, i));
         return <div
             className="info"
@@ -335,7 +337,6 @@ function Destination(props: {
     }), [index, onClick])[1];
     return <div
         ref={drop}
-        key={index}
         className="object destination"
         style={{ width, height, top, left }}
         onClick={onClick}

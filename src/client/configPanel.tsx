@@ -16,7 +16,15 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
 
     render() {
         const { G: { config }, ctx, events, moves } = this.props;
-        const { scenario, startTileId, remainingMallTileIds, divination, followTheLeader, skipPassingActions } = config;
+        const {
+            scenario,
+            startTileId,
+            remainingMallTileIds,
+            divination,
+            followTheLeader,
+            skipPassingActions,
+            trickTheGuards,
+        } = config;
 
         return <div className="config-panel">
             <div
@@ -37,7 +45,7 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
             <hr />
             <div className="field">
                 {'Start tile: '}
-                {this.renderChoices('startTileId', [{value: '1a', humanReadableValue: '1a'}, {value: '1b', humanReadableValue: '1b'}], startTileId)}
+                {this.renderChoices('startTileId', [{ value: '1a', humanReadableValue: '1a' }, { value: '1b', humanReadableValue: '1b' }], startTileId)}
             </div>
             <div className="field">
                 {'Tile set: '}
@@ -69,6 +77,13 @@ export class ConfigPanel extends React.Component<BoardProps<GameState>> {
                     { value: false, humanReadableValue: 'no' },
                     { value: true, humanReadableValue: 'yes' },
                 ], followTheLeader || false)}
+            </div>
+            <div className="field">
+                {'Trick the guards: '}
+                {this.renderChoices('trickTheGuards', [
+                    { value: false, humanReadableValue: 'no' },
+                    { value: true, humanReadableValue: 'yes' },
+                ], trickTheGuards || false)}
             </div>
             <button
                 className="start"

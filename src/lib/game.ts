@@ -53,11 +53,21 @@ export function getSquare(G: GameState, pawn: Color): Square {
     return placedTiles[tileId].squares[localRow][localCol];
 }
 
-export function atExit(G: GameState, pawn: Color, square?: Square): boolean {
+export function atWeapon(G: GameState, pawn: Color): boolean {
+    const { config: { trickTheGuards } } = G;
+    const { weapon } = getSquare(G, pawn);
+    return weapon !== undefined && ((weapon === pawn) !== trickTheGuards);
+}
+
+function allUsePurpleExit(G: GameState): boolean {
     const { config: { remainingMallTileIds } } = G;
-    const { exit } = square === undefined ? getSquare(G, pawn) : square;
-    const allUsePurpleExit = remainingMallTileIds.every(tileId => parseInt(tileId) <= 9);
-    return exit === pawn || (exit !== undefined && allUsePurpleExit === true);
+    return remainingMallTileIds.every(tileId => parseInt(tileId) <= 9);
+}
+
+export function atExit(G: GameState, pawn: Color): boolean {
+    const { config: { trickTheGuards } } = G;
+    const { exit } = getSquare(G, pawn);
+    return exit !== undefined && (allUsePurpleExit(G) || ((exit === pawn) !== trickTheGuards));
 }
 
 function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action): Location | undefined {
@@ -111,9 +121,14 @@ function makeMove(G: GameState, pawn: Color, pawnLocation: Location, dir: Action
         return undefined;
     }
 
-    // Check for another pawn
+    // If we're moving into a shared exit, then don't check for another pawn
     const destination = { tileId: tileId, localRow: localRow + drow, localCol: localCol + dcol };
-    if (some(pawnLocations, destination) && !atExit(G, pawn, squares[localRow + drow][localCol + dcol])) {
+    if (allUsePurpleExit(G) && squares[localRow + drow][localCol + dcol].exit !== undefined) {
+        return destination;
+    }
+
+    // Check for another pawn
+    if (some(pawnLocations, destination)) {
         return undefined;
     }
 
@@ -178,12 +193,15 @@ export function canExplore(G: GameState, playerID: string | null | undefined) {
 }
 
 export function getExplorableAreas(G: GameState, playerID: string | null | undefined): ExplorableArea[] {
-    const { numCrystalBallUses, pawnLocations, placedTiles, unplacedMallTileIds } = G;
-    if (unplacedMallTileIds.length === 0 || !canExplore(G, playerID)) {
+    const { exploringArea, numCrystalBallUses, pawnLocations, placedTiles, unplacedMallTileIds } = G;
+    if (!canExplore(G, playerID)) {
+        return [];
+    }
+    if (exploringArea === undefined && unplacedMallTileIds.length === 0) {
         return [];
     }
     const explorableAreas: ExplorableArea[] = [];
-    const [newTileId] = unplacedMallTileIds.slice(-1);
+    const newTileId = exploringArea !== undefined ? exploringArea.tileId : unplacedMallTileIds.slice(-1)[0];
     for (const [tileId, { row, col, exploreDirs }] of Object.entries(placedTiles)) {
         for (let dir = 0; dir < 4; dir++) {
             const { drow, dcol } = DIRS[dir];
@@ -251,7 +269,7 @@ export const Game = {
                 const { clock: { numMillisLeft, atTime }, config } = G;
                 const { scenario } = config;
                 const now = Date.now();
-                G.clock = { numMillisLeft: numMillisLeft - (now - atTime), atTime: now, frozen: true}
+                G.clock = { numMillisLeft: numMillisLeft - (now - atTime), atTime: now, frozen: true }
                 G.clock.frozen = true;
                 G.config = numMillisLeft > 0 && some(SCENARIOS, config) && scenario + 1 < SCENARIOS.length
                     ? SCENARIOS[scenario + 1]
@@ -265,7 +283,7 @@ export const Game = {
         movePawn: (G: GameState, ctx: Ctx, pawn: Color, newLocation: Location) => {
             const {
                 actionTiles,
-                clock: { numMillisLeft, atTime, frozen},
+                clock: { numMillisLeft, atTime, frozen },
                 config: { skipPassingActions },
                 exploringArea,
                 numCrystalBallUses,
@@ -309,7 +327,7 @@ export const Game = {
                 }
             }
 
-            if (range(4).every(i => getSquare(G, i).weapon === i)) {
+            if (range(4).every(i => atWeapon(G, i))) {
                 G.vortexSystemEnabled = false;
             }
 
@@ -329,11 +347,11 @@ export const Game = {
             }
             if (exploringArea === undefined) {
                 G.explorableAreas = newExplorableAreas;
+                unplacedMallTileIds.pop();
             } else if (!some(explorableAreas, newExploringArea)) {
                 return INVALID_MOVE;
             }
             G.exploringArea = newExploringArea;
-            unplacedMallTileIds.pop();
         },
         finishExplore: (G: GameState, ctx: Ctx) => {
             const { exploringArea, numCrystalBallUses, placedTiles } = G;
