@@ -1,28 +1,22 @@
 import { BoardProps } from 'boardgame.io/react';
-import { intersectionWith, isEqual, range } from 'lodash';
+import { intersectionWith, isEqual } from 'lodash';
 import React from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { PanZoom } from 'react-easy-panzoom'
 import { animated, useSpring } from 'react-spring';
-import { atExit, atWeapon, canExplore, getDiscardableTiles, getExplorableAreas, getPossibleDestinations } from '../lib/game';
-import { Color, ExplorableArea, GameState, Location, TalkingMode, TilePlacement } from '../lib/types';
+import { canExplore, getDiscardableTiles, getExplorableAreas, getPossibleDestinations } from '../lib/game';
+import { Color, ExplorableArea, GameState, Location, TilePlacement } from '../lib/types';
 import { Alert } from './alert';
 import { AudioController, Phase } from './audio';
-import { Clock } from './clock';
 import { ConfigPanel } from './configPanel';
+import { Info } from './info';
 import { Sidebar } from './sidebar';
 import './board.css';
 
 const MALL_TILE_SIZE = 555;
 const SQUARE_SIZE = 118;
 const PAWN_SIZE = 60;
-const COLORS = {
-    [Color.GREEN]: 'green',
-    [Color.ORANGE]: 'orange',
-    [Color.YELLOW]: 'yellow',
-    [Color.PURPLE]: 'purple',
-};
 
 interface State {
 
@@ -72,7 +66,7 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
         return <div className="board">
             {this.renderGame()}
             <Sidebar {...this.props} />
-            {this.renderInfo()}
+            <Info {...this.props} />
             {this.isPlayPhase()
                 ? <img
                     className="restart-button toggle-button"
@@ -189,80 +183,6 @@ export class Board extends React.Component<BoardProps<GameState>, State> {
         return this.renderMallTile(exploringArea.tileId, exploringArea);
     }
 
-    renderInfo() {
-        const { G, moves } = this.props;
-        const {
-            canTalk,
-            clock: { numMillisLeft, atTime, frozen },
-            config: { talkingMode },
-            equipmentStolen,
-            unplacedMallTileIds,
-        } = G;
-        const weapons: Color[] = equipmentStolen
-            ? range(4).filter(i => !atExit(G, i))
-            : range(4).filter(i => atWeapon(G, i));
-        return <div
-            className="info"
-        >
-            <span className="section timer">
-                <Clock
-                    numMillisLeft={numMillisLeft}
-                    atTime={atTime}
-                    frozen={frozen}
-                    timesUp={() => moves.sync()}
-                />
-            </span>
-            <span className={"section explore"}>
-                <span className={"top-unplaced"}>
-                    {this.renderTopUnplacedTile()}
-                </span>
-                {`x${unplacedMallTileIds.length}`}
-            </span>
-            <span className={"section"}>
-                <img
-                    src={talkingMode === TalkingMode.ALWAYS_ALLOW || (canTalk && talkingMode !== TalkingMode.NEVER)
-                        ? './talk.png'
-                        : './notalk.png'}
-                    alt="talk"
-                />
-            </span>
-            {weapons.length === 0
-                ? undefined
-                : <span className="section">
-                    {weapons.map(color => <img
-                        key={color}
-                        className="weapon"
-                        src={`./weapons/${COLORS[color]}.png`}
-                        alt={`${COLORS[color]} weapon`}
-                    />)}
-                </span>}
-        </div>;
-    }
-
-    renderTopUnplacedTile() {
-        const { G: { config: { divination }, unplacedMallTileIds } } = this.props;
-        if (!divination || unplacedMallTileIds.length === 0) {
-            return <img
-                className="base"
-                src="./back.jpg"
-                alt="Tile back"
-            />;
-        }
-        const tileId = unplacedMallTileIds.slice(-1)[0];
-        return <>
-            <img
-                className="base"
-                src={`./tiles/tile${tileId}.jpg`}
-                alt={`Tile ${tileId}`}
-            />
-            <img
-                className="magnified"
-                src={`./tiles/tile${tileId}.jpg`}
-                alt={`Tile ${tileId}`}
-            />
-        </>;
-    }
-
     private getPositionStyle({ tileId, localRow, localCol }: Location, size: number) {
         const { G: { placedTiles } } = this.props;
         const { row, col } = tileId in placedTiles ? placedTiles[tileId] : { row: -1, col: -1 };
@@ -328,7 +248,6 @@ function Pawn(props: {
 }) {
     const { index, width, height, top, left, selected, onClick } = props;
     const { top: animatedTop, left: animatedLeft } = useSpring({ top, left });
-    const color = COLORS[index as Color];
     const drag = useDrag(() => ({
         type: 'pawn',
         item: () => {
@@ -346,8 +265,8 @@ function Pawn(props: {
             top: animatedTop,
             left: animatedLeft,
         }}
-        src={`./weapons/${color}.png`}
-        alt={`${color} pawn`}
+        src={`./weapons/${index}.png`}
+        alt="pawn"
         onClick={onClick}
     />;
 }
